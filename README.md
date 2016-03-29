@@ -3,7 +3,7 @@
 
 Open source (FreeBSD) extension for builtin Unity lights. It uses ray marching in light's volume to compute volumetric fog. Light scattering is not physically correct. Scattering is approximated by light's attenuation. This technique is similar to the one used in Killzone ([GPU Pro 5](http://www.amazon.com/GPU-Pro-Advanced-Rendering-Techniques/dp/1482208636): Volumetric Light Effects in Killzone Shadow Fall by Nathan Vos)
 
-[Unity Community Thread](http://forum.unity3d.com/threads/true-volumetric-lights-open-source-soon.390818/)
+Corresponding thread in Unity Forum can be found [here](http://forum.unity3d.com/threads/true-volumetric-lights-open-source-soon.390818/).
 
 ### Demo Project
 I developed this technology for my hobby project. It was never meant for production and it is therefore little rough around the edges.
@@ -28,11 +28,34 @@ Volumetric lights will respect standard light's parameters like color, intensity
 * Noise Speed - noise animation speed
 * MieG - parameter that controls mie scattering (controls how light is reflected with respect to light's direction)
 
+Sample scene called "example" is part of this project.
+
 ### Rendering resolution
 Volumetric fog can be rendered in smaller resolution as an optimization. Set rendering resolution in VolumetricLightRenderer script.
 * Full resolution - best quality, poor performance. Serves as a "ground truth".
 * Half resolution - best quality/performance ratio.
-* Quarter resolution - experimental. Worse quality. No real performance gain for one or twe lights. Try to use when you have many lights.
+* Quarter resolution - experimental. Worse quality. No real performance gain for one or two lights. Try to use it when you have many lights.
 
 ### Known Limitations
-* Currenty requires HDR camera and deferred renderer
+* Currently requires HDR camera and deferred renderer
+* Currently requires DirectX 11
+* Doesn't handle transparent geometry correclty (cutout is ok)
+* 3d noise texture is hard coded. VolumetricLightRenderer has custom dds file loader that loads one specific 3d texture.
+* Directional light isn't fully supported
+* Shadow fading currently isn't supported
+
+### Technique overview
+* Create render target for volumetric light (volume light buffer)
+* Use CameraEvent.BeforeLighting to clear volume light buffer
+* For every volumetric light render light's volume geometry (sphere, cone, full-screen quad)
+  * Use LightEvent.AfterShadowMap for shadow casting lights​
+  * Use CameraEvent.BeforeLighting for non-shadow casting lights​
+  * Perform raymarching in light's volume​
+    * Dithering is used to offset ray origin for neighbouring pixels​
+* Use CameraEvent.AfterLighting to perform depth aware gaussian blur on volume light buffer
+* Add volume light buffer to Unity's built-in light buffer
+
+### Possible improvements
+* Light's volume geometry is unnccessarily high poly
+* Ray marching is performed in view space and every sample is then transformed to shadow space. It would be better to perform ray marching in both spaces simultaneously.
+* Add temporal filter to improve image quality and stability in motion. Change sampling pattern every frame to get more ray marching steps at no additional cost
