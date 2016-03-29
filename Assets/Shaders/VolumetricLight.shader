@@ -270,7 +270,7 @@ Shader "Sandbox/VolumetricLight"
 				
 			}
 
-			return vlight;
+			return max(0, vlight);
 		}
 
 		//-----------------------------------------------------------------------------------------
