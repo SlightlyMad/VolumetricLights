@@ -1,4 +1,4 @@
-﻿//  Copyright(c) 2016, Michal Skalsky
+//  Copyright(c) 2016, Michal Skalsky
 //  All rights reserved.
 //
 //  Redistribution and use in source and binary forms, with or without modification,
@@ -31,7 +31,7 @@ Shader "Hidden/BilateralBlur"
 {
 	Properties
 	{
-		_MainTex ("Texture", 2D) = "white" {}
+        _MainTex("Texture", any) = "" {}
 	}
 		SubShader
 	{
