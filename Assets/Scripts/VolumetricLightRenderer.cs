@@ -57,13 +57,13 @@ public class VolumetricLightRenderer : MonoBehaviour
     private Material _blitAddMaterial;
     private Material _bilateralBlurMaterial;
 
-    private static RenderTexture _volumeLightTexture;
-    private static RenderTexture _halfVolumeLightTexture;
-    private static RenderTexture _quarterVolumeLightTexture;
+    private RenderTexture _volumeLightTexture;
+    private RenderTexture _halfVolumeLightTexture;
+    private RenderTexture _quarterVolumeLightTexture;
     private static Texture _defaultSpotCookie;
     
-    private static RenderTexture _halfDepthBuffer;
-    private static RenderTexture _quarterDepthBuffer;
+    private RenderTexture _halfDepthBuffer;
+    private RenderTexture _quarterDepthBuffer;
     private VolumtericResolution _currentResolution = VolumtericResolution.Full;
     private Texture2D _ditheringTexture;
     private Texture3D _noiseTexture;
