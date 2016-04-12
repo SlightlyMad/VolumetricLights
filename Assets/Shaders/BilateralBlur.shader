@@ -186,9 +186,9 @@ Shader "Hidden/BilateralBlur"
 		float DownsampleDepth(v2fDownsample input, sampler2D depthTexture)
 		{			
 			float depth = tex2D(depthTexture, input.uv00).x;
-			depth = max(depth, tex2D(depthTexture, input.uv01)).x;
-			depth = max(depth, tex2D(depthTexture, input.uv10)).x;
-			depth = max(depth, tex2D(depthTexture, input.uv11)).x;
+			depth = min(depth, tex2D(depthTexture, input.uv01)).x;
+			depth = min(depth, tex2D(depthTexture, input.uv10)).x;
+			depth = min(depth, tex2D(depthTexture, input.uv11)).x;
 
 			return depth;
 		}
@@ -212,7 +212,8 @@ Shader "Hidden/BilateralBlur"
 
 			float2 center = input.vertex.xy;
 			float2 uv = center * _RenderTargetSize.zw;
-			float3 color = tex2D(_MainTex, uv);
+			float4 centerColor = tex2D(_MainTex, uv);
+			float3 color = centerColor.xyz;
 			//return float4(color, 1);
 			float centerDepth = (LinearEyeDepth(SAMPLE_DEPTH_TEXTURE(depth, uv)));
 
@@ -261,7 +262,7 @@ Shader "Hidden/BilateralBlur"
 			}
 
 			color /= weightSum;
-			return float4(color, 1);
+			return float4(color, centerColor.w);
 		}
 
 		ENDCG

@@ -46,6 +46,7 @@ public class VolumetricLightRenderer : MonoBehaviour
 
     private static Mesh _pointLightMesh;
     private static Mesh _spotLightMesh;
+    private static Mesh _dirLightMesh;
     private static Material _lightMaterial;
 
     private Camera _camera;
@@ -98,6 +99,15 @@ public class VolumetricLightRenderer : MonoBehaviour
     public static Mesh GetSpotLightMesh()
     {
         return _spotLightMesh;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
+    public static Mesh GetDirLightMesh()
+    {
+        return _dirLightMesh;
     }
 
     /// <summary>
@@ -159,6 +169,11 @@ public class VolumetricLightRenderer : MonoBehaviour
             _spotLightMesh = CreateSpotLightMesh();
         }
 
+        if (_dirLightMesh == null)
+        {
+            _dirLightMesh = CreateDirLightMesh();
+        }
+
         if (_lightMaterial == null)
         {
             _lightMaterial = new Material(Shader.Find("Sandbox/VolumetricLight"));
@@ -181,7 +196,7 @@ public class VolumetricLightRenderer : MonoBehaviour
         _camera.RemoveAllCommandBuffers();
         _camera.AddCommandBuffer(CameraEvent.BeforeLighting, _preLightPass);
         _camera.AddCommandBuffer(CameraEvent.AfterLighting, _postLightPass);
-        _camera.AddCommandBuffer(CameraEvent.BeforeFinalPass, _preFinalPass);
+        _camera.AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _preFinalPass);
     }
 
     /// <summary>
@@ -333,7 +348,7 @@ public class VolumetricLightRenderer : MonoBehaviour
         else            
             _preLightPass.SetRenderTarget(_volumeLightTexture, BuiltinRenderTextureType.CameraTarget);
 
-        _preLightPass.ClearRenderTarget(false, true, Color.black);
+        _preLightPass.ClearRenderTarget(false, true, new Color(0, 0, 0, 1));
         
         if (PreRenderEvent != null)
             PreRenderEvent(this, _viewProj);                
@@ -542,6 +557,38 @@ public class VolumetricLightRenderer : MonoBehaviour
         indices[index++] = 2 + segmentCount * 2;
         indices[index++] = segmentCount * 3 + 1;
 
+        mesh.triangles = indices;
+        mesh.RecalculateBounds();
+
+        return mesh;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
+    private Mesh CreateDirLightMesh()
+    {
+        Mesh mesh = new Mesh();
+        Vector3[] vertices = new Vector3[4];
+
+        vertices[0] = new Vector3(-1, -1, 1);
+        vertices[1] = new Vector3(-1,  1, 1);
+        vertices[2] = new Vector3( 1, -1, 1);
+        vertices[3] = new Vector3( 1,  1, 1);
+                
+        mesh.vertices = vertices;
+        
+        int[] indices = new int[6];
+
+        indices[0] = 0;
+        indices[1] = 1;
+        indices[2] = 2;
+
+        indices[3] = 2;
+        indices[4] = 1;
+        indices[5] = 3;
+        
         mesh.triangles = indices;
         mesh.RecalculateBounds();
 

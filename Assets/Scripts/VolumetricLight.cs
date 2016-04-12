@@ -1,4 +1,4 @@
-﻿//  Copyright(c) 2016, Michal Skalsky
+//  Copyright(c) 2016, Michal Skalsky
 //  All rights reserved.
 //
 //  Redistribution and use in source and binary forms, with or without modification,
@@ -44,29 +44,26 @@ public class VolumetricLight : MonoBehaviour
 
     [Range(1, 64)]
     public int SampleCount = 12;
-    [Range(0.0f, 10.0f)]
-    public float Density = 0.2f;
+    [Range(0.0f, 1.0f)]
+    public float ScatteringCoef = 0.1f;
+    [Range(0.0f, 0.1f)]
+    public float ExtinctionCoef = 0.01f;
+    [Range(0.0f, 1.0f)]
+    public float SkyboxExtinctionCoef = 0.9f;
     [Range(0.0f, 0.999f)]
     public float MieG = 0.1f;
+    public bool HeightFog = false;
+    [Range(0, 0.5f)]
+    public float HeightScale = 0.10f;
+    public float GroundLevel = 0;
     public bool Noise = false;
-    public float NoiseScale = 0.15f;
+    public float NoiseScale = 0.015f;
     public float NoiseIntensity = 1.0f;
     public float NoiseIntensityOffset = 0.3f;
-    public Vector2 NoiseVelocity = new Vector2(0.3f, 0.3f);
+    public Vector2 NoiseVelocity = new Vector2(3.0f, 3.0f);
 
-
-    public bool HeightFog = false;
-    [Range(-10, 100)]
-    public float MinHeight = 1;
-    [Range(-10, 100)]
-    public float MaxHeight = 5;
-    [Range(0, 2)]
-    private float MinHeightIntensity = 1;
-    [Range(0, 2)]
-    private float MaxHeightIntensity = 0.2f;
-
-    [Range(0, 500)]
-    public float DirLightFarPlane = 100;
+    [Tooltip("")]    
+    public float MaxRayLength = 400.0f;    
 
     public Light Light { get { return _light; } }
     public Material VolumetricMaterial { get { return _material; } }
@@ -132,8 +129,10 @@ public class VolumetricLight : MonoBehaviour
             return;
 
         _material.SetInt("_SampleCount", SampleCount);
-        _material.SetVector("_NoiseVelocity", new Vector4(NoiseVelocity.x, NoiseVelocity.y));
+        _material.SetVector("_NoiseVelocity", new Vector4(NoiseVelocity.x, NoiseVelocity.y) * NoiseScale);
         _material.SetVector("_NoiseData", new Vector4(NoiseScale, NoiseIntensity, NoiseIntensityOffset));
+        _material.SetVector("_MieG", new Vector4(1 - (MieG * MieG), 1 + (MieG * MieG), 2 * MieG, 1.0f / (4.0f * Mathf.PI)));
+        _material.SetVector("_VolumetricLight", new Vector4(ScatteringCoef, ExtinctionCoef, _light.range, 1.0f - SkyboxExtinctionCoef));
 
         if (renderer.Resolution == VolumetricLightRenderer.VolumtericResolution.Full)
         {
@@ -151,7 +150,7 @@ public class VolumetricLight : MonoBehaviour
         {
             _material.EnableKeyword("HEIGHT_FOG");
 
-            _material.SetVector("_HeightFog", new Vector4(MinHeight, MaxHeight - MinHeight, MaxHeightIntensity, MinHeightIntensity - MaxHeightIntensity));
+            _material.SetVector("_HeightFog", new Vector4(GroundLevel, HeightScale));
         }
         else
         {
@@ -194,8 +193,6 @@ public class VolumetricLight : MonoBehaviour
 
         _material.SetMatrix("_WorldViewProj", viewProj * world);
         _material.SetMatrix("_WorldView", Camera.current.worldToCameraMatrix * world);
-
-        _material.SetVector("_VolumetricLight", new Vector4(Density, MieG, _light.range, 0));
 
         if (Noise)
             _material.EnableKeyword("NOISE");
@@ -280,8 +277,6 @@ public class VolumetricLight : MonoBehaviour
         _material.SetMatrix("_MyLightMatrix0", clip * proj * view);
 
         _material.SetMatrix("_WorldViewProj", viewProj * world);
-        
-        _material.SetVector("_VolumetricLight", new Vector4(Density, MieG, _light.range, 0));
 
         _material.SetVector("_LightPos", new Vector4(_light.transform.position.x, _light.transform.position.y, _light.transform.position.z, 1.0f / (_light.range * _light.range)));
         _material.SetVector("_LightColor", _light.color * _light.intensity);
@@ -366,28 +361,28 @@ public class VolumetricLight : MonoBehaviour
     /// <param name="viewProj"></param>
     private void SetupDirectionalLight(VolumetricLightRenderer renderer, Matrix4x4 viewProj)
     {
-        int pass = 5;
+        int pass = 4;
 
         _material.SetPass(pass);
 
-        Mesh mesh = VolumetricLightRenderer.GetPointLightMesh();
+        Mesh mesh = VolumetricLightRenderer.GetDirLightMesh();
 
         _commandBuffer.Clear();
 
-        float scale = DirLightFarPlane;// _light.range * 2.0f;
-        Matrix4x4 world = Matrix4x4.TRS(Camera.current.transform.position, Quaternion.identity, new Vector3(scale, scale, scale));
+        float zScale = Mathf.Min(Camera.current.farClipPlane, MaxRayLength);
+        float yScale = Camera.current.farClipPlane * Mathf.Tan(Mathf.Deg2Rad * Camera.current.fieldOfView * 0.5f);
+        float xScale = yScale * Camera.current.aspect;
+        Matrix4x4 world = Matrix4x4.TRS(Camera.current.transform.position, Camera.current.transform.rotation, new Vector3(xScale, yScale, zScale));
 
         _material.SetMatrix("_WorldViewProj", viewProj * world);
         _material.SetMatrix("_WorldView", Camera.current.worldToCameraMatrix * world);
-
-        _material.SetVector("_VolumetricLight", new Vector4(Density, MieG, _light.range, 0));
 
         if (Noise)
             _material.EnableKeyword("NOISE");
         else
             _material.DisableKeyword("NOISE");
 
-        _material.SetVector("_LightPos", new Vector4(_light.transform.position.x, _light.transform.position.y, _light.transform.position.z, 1.0f / (_light.range * _light.range)));
+        _material.SetVector("_LightDir", new Vector4(_light.transform.forward.x, _light.transform.forward.y, _light.transform.forward.z, 1.0f / (_light.range * _light.range)));
         _material.SetVector("_LightColor", _light.color * _light.intensity);
 
         if (_light.cookie == null)
@@ -422,7 +417,7 @@ public class VolumetricLight : MonoBehaviour
         {
             _material.DisableKeyword("SHADOWS_DEPTH");
             //globalBuffer.Blit(texture, VolumetricLightRenderer.GetVolumeLightBuffer(), _material, pass);
-            renderer.GlobalCommandBuffer.DrawMesh(mesh, world, _material, 0, pass);
+            renderer.GlobalCommandBuffer.DrawMesh(mesh, world, _material, 0, pass);            
 
             if (CustomRenderEvent != null)
                 CustomRenderEvent(renderer, this, renderer.GlobalCommandBuffer, viewProj);

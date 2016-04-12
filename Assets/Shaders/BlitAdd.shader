@@ -1,4 +1,4 @@
-﻿//  Copyright(c) 2016, Michal Skalsky
+//  Copyright(c) 2016, Michal Skalsky
 //  All rights reserved.
 //
 //  Redistribution and use in source and binary forms, with or without modification,
@@ -35,7 +35,7 @@ Shader "Hidden/BlitAdd"
 		Pass
 		{
 			ZTest Always Cull Off ZWrite Off
-			Blend One One
+			Blend One SrcAlpha
 
 			CGPROGRAM
 	#pragma vertex vert

@@ -1,4 +1,4 @@
-﻿//  Copyright(c) 2016, Michal Skalsky
+//  Copyright(c) 2016, Michal Skalsky
 //  All rights reserved.
 //
 //  Redistribution and use in source and binary forms, with or without modification,
@@ -61,14 +61,18 @@ Shader "Sandbox/VolumetricLight"
 		float4x4 _MyLightMatrix0;
 		float4x4 _MyWorld2Shadow;
 
-		// x: density, y: mie g, z: range w: unused
+		// x: scattering coef, y: extinction coef, z: range w: skybox extinction coef
 		float4 _VolumetricLight;
+        // x: 1 - g^2, y: 1 + g^2, z: 2*g, w: 1/4pi
+        float4 _MieG;
 
 		// x: scale, y: intensity, z: intensity offset
 		float4 _NoiseData;
+        // x: x velocity, y: z velocity
 		float4 _NoiseVelocity;
-		// x: min height, y: height range, z: min height intensity, w: height intensity range
+		// x:  ground level, y: height scale, z: unused, w: unused
 		float4 _HeightFog;
+		//float4 _LightDir;
 
 		int _SampleCount;
 
@@ -76,8 +80,7 @@ Shader "Sandbox/VolumetricLight"
 		{
 			float4 pos : SV_POSITION;
 			float4 uv : TEXCOORD0;
-			float3 ray : TEXCOORD1;
-			float3 wpos : TEXCOORD2;
+			float3 wpos : TEXCOORD1;
 		};
 
 		v2f vert(appdata v)
@@ -85,17 +88,6 @@ Shader "Sandbox/VolumetricLight"
 			v2f o;
 			o.pos = mul(_WorldViewProj, v.vertex);
 			o.uv = ComputeScreenPos(o.pos);
-			o.ray =  mul(_WorldView, v.vertex).xyz * float3(-1, -1, 1);
-			o.wpos = mul(_Object2World, v.vertex);
-			return o;
-		}
-
-		v2f vertQuad(appdata v)
-		{
-			v2f o;
-			o.pos = mul(UNITY_MATRIX_MVP, v.vertex);
-			o.uv = ComputeScreenPos(o.pos);
-			o.ray = mul(UNITY_MATRIX_MV, v.vertex).xyz * float3(-1, -1, 1);
 			o.wpos = mul(_Object2World, v.vertex);
 			return o;
 		}
@@ -184,6 +176,7 @@ Shader "Sandbox/VolumetricLight"
 			float4 samplePos = GetCascadeShadowCoord(float4(wpos, 1), cascadeWeights);
 
 			atten = inside ? UNITY_SAMPLE_SHADOW(_CascadeShadowMapTexture, samplePos.xyz) : 1.0f;
+			atten = _LightShadowData.r + atten * (1 - _LightShadowData.r);
 			//atten = inside ? tex2Dproj(_ShadowMapTexture, float4((samplePos).xyz, 1)).r : 1.0f;
 #endif
 #if defined (DIRECTIONAL_COOKIE)
@@ -214,29 +207,41 @@ Shader "Sandbox/VolumetricLight"
 			atten *= texCUBEbias(_LightTexture0, float4(mul(_MyLightMatrix0, half4(wpos, 1)).xyz, -8)).w;
 #endif //POINT_COOKIE
 #endif
+			return atten;
+		}
+
+        //-----------------------------------------------------------------------------------------
+        // ApplyHeightFog
+        //-----------------------------------------------------------------------------------------
+        void ApplyHeightFog(float3 wpos, inout float density)
+        {
+#ifdef HEIGHT_FOG
+            density *= exp(-(wpos.y + _HeightFog.x) * _HeightFog.y);
+#endif
+        }
+
+        //-----------------------------------------------------------------------------------------
+        // GetDensity
+        //-----------------------------------------------------------------------------------------
+		float GetDensity(float3 wpos)
+		{
+            float density = 1;
 #ifdef NOISE
 			float noise = tex3D(_NoiseTexture, frac(wpos * _NoiseData.x + float3(_Time.y * _NoiseVelocity.x, 0, _Time.y * _NoiseVelocity.y)));
 			noise = saturate(noise - _NoiseData.z) * _NoiseData.y;
-			atten *= saturate(noise);
+			density = saturate(noise);
 #endif
+            ApplyHeightFog(wpos, density);
 
-#ifdef HEIGHT_FOG
-			float ratio = 1 - saturate((wpos.y - _HeightFog.x) / _HeightFog.y);
-			atten *= ratio;// *_HeightFog.w + _HeightFog.z;
-#endif
-
-			return atten;
-		}
+            return density;
+		}        
 
 		//-----------------------------------------------------------------------------------------
 		// MieScattering
 		//-----------------------------------------------------------------------------------------
 		float MieScattering(float cosAngle)
 		{
-			float g = _VolumetricLight.y;
-			float g2 = g * g;
-			float res = (pow(1 - g, 2)) / (4 * 3.14 * pow(1 + g2 - (2 * g) * cosAngle, 3.0 / 2.0));
-			return res;
+            return _MieG.w * (_MieG.x / (pow(_MieG.y - _MieG.z * cosAngle, 1.5)));			
 		}
 
 		//-----------------------------------------------------------------------------------------
@@ -256,21 +261,45 @@ Shader "Sandbox/VolumetricLight"
 
 			float4 vlight = 0;
 
+			float cosAngle;
+#if defined (DIRECTIONAL) || defined (DIRECTIONAL_COOKIE)
+            float extinction = 0;
+			cosAngle = dot(_LightDir.xyz, -rayDir);
+#else
+			// we don't know about density between camera and light's volume, assume 0.5
+			float extinction = length(_WorldSpaceCameraPos - currentPosition) * _VolumetricLight.y * 0.5;
+#endif
 			[loop]
 			for (int i = 0; i < stepCount; ++i)
 			{
 				float atten = GetLightAttenuation(currentPosition);
+				float density = GetDensity(currentPosition);
 
-				float3 tolight = normalize(currentPosition - _LightPos.xyz);
-				float cosAngle = dot(tolight, -rayDir);
+                float scattering = _VolumetricLight.x * stepSize * density;
+				extinction += _VolumetricLight.y * stepSize * density;// +scattering;
 
-				vlight += atten * stepSize * _LightColor * _VolumetricLight.x * MieScattering(cosAngle);
+				float4 light = atten * _LightColor * scattering * exp(-extinction);
 
-				currentPosition += step;
-				
+//#if PHASE_FUNCTOIN
+#if !defined (DIRECTIONAL) && !defined (DIRECTIONAL_COOKIE)
+                float3 tolight = normalize(currentPosition - _LightPos.xyz);
+                cosAngle = dot(tolight, -rayDir);
+#endif
+                light *= MieScattering(cosAngle);
+//#endif
+
+				vlight += light;
+
+				currentPosition += step;				
 			}
 
-			return max(0, vlight);
+			vlight = max(0, vlight);
+#if defined (DIRECTIONAL) || defined (DIRECTIONAL_COOKIE) // use "proper" out-scattering/absorption for dir light 
+			vlight.w = exp(-extinction);
+#else
+            vlight.w = 0;
+#endif
+			return vlight;
 		}
 
 		//-----------------------------------------------------------------------------------------
@@ -313,7 +342,7 @@ Shader "Sandbox/VolumetricLight"
 
 			float t = -(NdotO + planeD) / NdotD;
 			if (t < 0)
-				t = 1000000;
+				t = 100000;
 			return t;
 		}
 
@@ -534,126 +563,15 @@ Shader "Sandbox/VolumetricLight"
 				return RayMarch(i, rayEnd, rayDir, rayLength);
 			}
 			ENDCG
-		}
+		}		
 
-		// pass 4 - scan beam
-		Pass
-			{
-				//ZTest Off
-				ZTest [_ZTest]
-				Cull Off
-				ZWrite Off
-				Blend One One
-
-				CGPROGRAM
-#pragma vertex vert2
-#pragma fragment fragSpotOutside
-#pragma target 5.0
-
-#define UNITY_HDR_ON
-
-#pragma shader_feature HEIGHT_FOG
-#pragma shader_feature SHADOWS_CUBE
-#pragma shader_feature NOISE
-#pragma shader_feature POINT
-#pragma shader_feature POINT_COOKIE
-
-				sampler2D _CameraGBufferTexture2;
-
-				struct input
-				{
-					float4 vertex : POSITION;
-					float4 normal : NORMAL;
-				};
-
-				struct v2f2
-				{
-					float4 pos : SV_POSITION;
-					float4 uv : TEXCOORD0;
-					float3 ray : TEXCOORD1;
-					float3 wpos : TEXCOORD2;
-					float3 normal : NORMAL;
-				};
-
-				v2f2 vert2(input v)
-				{
-					v2f2 o;
-					o.pos = mul(_WorldViewProj, v.vertex);
-					o.uv = ComputeScreenPos(o.pos);
-					o.ray = mul(_WorldView, v.vertex).xyz * float3(-1, -1, 1);
-					o.wpos = mul(_Object2World, v.vertex);
-					o.normal = mul(_Object2World, float4(v.normal.xyz, 0));
-					return o;
-				}
-
-				fixed4 fragSpotOutside(v2f2 i) : SV_Target
-				{
-					float2 uv = i.uv.xy / i.uv.w;
-
-					float4 light = _LightColor;
-
-					// read depth and reconstruct world position
-					float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, uv);
-
-					float3 wpos = i.wpos;
-					float atten = 0;
-
-					#if defined (POINT) || defined (POINT_COOKIE)
-					float3 tolight = wpos - _LightPos.xyz;
-					half3 lightDir = -normalize(tolight);
-
-					float att = dot(tolight, tolight) * _LightPos.w;
-					atten = tex2D(_LightTextureB0, att.rr).UNITY_ATTEN_CHANNEL;
-					atten = 1-att;
-
-					float shadow = saturate(UnityDeferredComputeShadow(tolight, 0, float2(0, 0)) + 0.0f);
-					atten *= shadow;
-					light *= shadow;
-					#endif
-					#ifdef NOISE
-					float noise = tex3D(_NoiseTexture, frac(wpos * _NoiseData.x + float3(_Time.y * _NoiseVelocity.x, 0, _Time.y * _NoiseVelocity.y)));
-					noise = pow(noise, _NoiseData.z) * _NoiseData.y;
-					atten *= saturate(noise);
-					#endif
-
-					#ifdef HEIGHT_FOG
-					float ratio = 1 - saturate((wpos.y - _HeightFog.x) / _HeightFog.y);
-					atten *= ratio;
-					#endif
-
-					float3 rayDir = normalize(wpos - _WorldSpaceCameraPos);
-
-					float3 tolight2 = normalize(wpos - _LightPos.xyz);
-					float cosAngle = dot(tolight2, -rayDir);
-					
-					float4 c = atten * _LightColor * _VolumetricLight.x * MieScattering(cosAngle);
-
-
-						half4 gbuffer2 = tex2D(_CameraGBufferTexture2, uv);
-						half3 normalWorld = gbuffer2.rgb * 2 - 1;
-						normalWorld = normalize(normalWorld);
-
-					float3 planeNormal = normalize(i.normal);
-
-						float d = 1 - abs(dot(planeNormal, normalWorld));
-						
-					if ((abs(LinearEyeDepth(depth)) - abs(i.ray.z)) < (d * 0.25 + 0.05))
-					{ 
-						c = light * 1;
-					}
-
-					return c;
-				}
-					ENDCG
-			}
-
-		// pass 5 - directional light
+		// pass 4 - directional light
 		Pass
 		{
 			ZTest Off
-			Cull Front
+			Cull Off
 			ZWrite Off
-			Blend One One
+			Blend One One, One Zero
 
 			CGPROGRAM
 
@@ -675,21 +593,28 @@ Shader "Sandbox/VolumetricLight"
 #endif
 
 			fixed4 fragDir(v2f i) : SV_Target
-			{
-				i.ray = i.ray * (_ProjectionParams.z / i.ray.z);
+			{				
 				float2 uv = i.uv.xy / i.uv.w;
 				float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, uv);
-					
+													
 				float3 rayStart = _WorldSpaceCameraPos;
 				float3 rayEnd = i.wpos;
 
 				float3 rayDir = (rayEnd - rayStart);
 				float rayLength = length(rayDir);
-
 				rayDir /= rayLength;
-				rayLength = min(rayLength, LinearEyeDepth(depth));
 
-				return RayMarch(i, rayStart, rayDir, rayLength);
+				float linearDepth = LinearEyeDepth(depth);
+
+				rayLength = min(rayLength, linearDepth);
+
+				float4 color = RayMarch(i, rayStart, rayDir, rayLength);
+
+				if (linearDepth > _ProjectionParams.z * 0.99)
+				{
+					color.w = lerp(color.w, 1, _VolumetricLight.w);
+				}
+				return color;
 			}
 				ENDCG
 		}
