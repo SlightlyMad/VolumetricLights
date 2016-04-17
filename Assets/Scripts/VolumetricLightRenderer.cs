@@ -193,7 +193,7 @@ public class VolumetricLightRenderer : MonoBehaviour
     /// </summary>
     void OnEnable()
     {
-        _camera.RemoveAllCommandBuffers();
+        //_camera.RemoveAllCommandBuffers();
         _camera.AddCommandBuffer(CameraEvent.BeforeLighting, _preLightPass);
         _camera.AddCommandBuffer(CameraEvent.AfterLighting, _postLightPass);
         _camera.AddCommandBuffer(CameraEvent.BeforeForwardAlpha, _preFinalPass);
@@ -204,7 +204,10 @@ public class VolumetricLightRenderer : MonoBehaviour
     /// </summary>
     void OnDisable()
     {
-        _camera.RemoveAllCommandBuffers();
+        //_camera.RemoveAllCommandBuffers();
+        _camera.RemoveCommandBuffer(CameraEvent.BeforeLighting, _preLightPass);
+        _camera.RemoveCommandBuffer(CameraEvent.AfterLighting, _postLightPass);
+        _camera.RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, _preFinalPass);
     }
     
     /// <summary>
