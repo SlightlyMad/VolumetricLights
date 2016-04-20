@@ -325,20 +325,8 @@ public class VolumetricLightRenderer : MonoBehaviour
     public void OnPreRender()
     {
         Matrix4x4 proj = _camera.projectionMatrix;
-        
-        if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11)
-        {
-            // Invert Y for rendering to a render texture
-            for (int i = 0; i < 4; i++)
-            {
-                proj[1, i] = -proj[1, i];
-            }
-            // Scale and bias from OpenGL -> D3D depth range
-            for (int i = 0; i < 4; i++)
-            {
-                proj[2, i] = proj[2, i] * 0.5f + proj[3, i] * 0.5f;
-            }
-        }
+
+        proj = GL.GetGPUProjectionMatrix(proj, true);
 
         _viewProj = proj * _camera.worldToCameraMatrix;
 

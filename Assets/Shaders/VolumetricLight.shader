@@ -359,7 +359,7 @@ Shader "Sandbox/VolumetricLight"
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment fragPointInside
-#pragma target 5.0
+			#pragma target gl4.1
 
 			#define UNITY_HDR_ON
 
@@ -408,7 +408,7 @@ Shader "Sandbox/VolumetricLight"
 			CGPROGRAM
 #pragma vertex vert
 #pragma fragment fragPointInside
-#pragma target 5.0
+#pragma target gl4.1
 
 #define UNITY_HDR_ON
 
@@ -456,7 +456,7 @@ Shader "Sandbox/VolumetricLight"
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment fragPointOutside
-			#pragma target 5.0
+			#pragma target gl4.1
 
 			#define UNITY_HDR_ON
 
@@ -513,7 +513,7 @@ Shader "Sandbox/VolumetricLight"
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment fragSpotOutside
-#pragma target 5.0
+			#pragma target gl4.1
 
 			#define UNITY_HDR_ON
 
@@ -577,7 +577,7 @@ Shader "Sandbox/VolumetricLight"
 
 #pragma vertex vert
 #pragma fragment fragDir
-#pragma target 5.0
+#pragma target gl4.1
 
 #define UNITY_HDR_ON
 
