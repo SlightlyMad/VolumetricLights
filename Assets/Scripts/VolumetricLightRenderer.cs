@@ -324,9 +324,7 @@ public class VolumetricLightRenderer : MonoBehaviour
     /// </summary>
     public void OnPreRender()
     {
-        Matrix4x4 proj = _camera.projectionMatrix;
-
-        proj = GL.GetGPUProjectionMatrix(proj, true);
+        Matrix4x4 proj = GL.GetGPUProjectionMatrix(_camera.projectionMatrix, true);
 
         _viewProj = proj * _camera.worldToCameraMatrix;
 

@@ -102,7 +102,7 @@ Shader "Sandbox/VolumetricLight"
 			float3 fromCenter2 = wpos.xyz - unity_ShadowSplitSpheres[2].xyz;
 			float3 fromCenter3 = wpos.xyz - unity_ShadowSplitSpheres[3].xyz;
 			float4 distances2 = float4(dot(fromCenter0, fromCenter0), dot(fromCenter1, fromCenter1), dot(fromCenter2, fromCenter2), dot(fromCenter3, fromCenter3));
-#if !defined(SHADER_API_D3D11)
+#if SHADER_TARGET > 30
 			fixed4 weights = float4(distances2 < unity_ShadowSplitSqRadii);
 			weights.yzw = saturate(weights.yzw - weights.xyz);
 #else
@@ -116,7 +116,7 @@ Shader "Sandbox/VolumetricLight"
 		//-----------------------------------------------------------------------------------------
 		inline float4 GetCascadeShadowCoord(float4 wpos, fixed4 cascadeWeights)
 		{
-#if defined(SHADER_API_D3D11)
+#if SHADER_TARGET > 30
 			return mul(unity_World2Shadow[(int)dot(cascadeWeights, float4(1, 1, 1, 1))], wpos);
 #else
 			float3 sc0 = mul(unity_World2Shadow[0], wpos).xyz;
