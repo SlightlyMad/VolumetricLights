@@ -52,9 +52,14 @@ Volumetric fog can be rendered in smaller resolution as an optimization. Set ren
 * Half resolution - best quality/performance ratio.
 * Quarter resolution - experimental. Worse quality. No real performance gain for one or two lights. Try to use it when you have many lights.
 
+### Requirements
+* Unity 5 (tested on 5.3.4)
+* DirectX 10/11 or OpenGL 4.1 and above
+* Tested on Windows and Mac but it should work on other platforms as well
+
 ### Known Limitations
 * Currently requires HDR camera and deferred renderer
-* Currently requires DirectX 11
+* ~~Currently requires DirectX 11~~
 * Doesn't handle transparent geometry correctly (cutout is ok)
 * 3d noise texture is hard coded. VolumetricLightRenderer has custom dds file loader that loads one specific 3d texture (Unity doesn't support 3d textures loaded from file). File "NoiseVolume.bytes" has to be in Resources folder.
 * Shadow fading is not implemented
