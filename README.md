@@ -5,6 +5,11 @@ Open source (FreeBSD) extension for built-in Unity lights. It uses ray marching 
 
 Corresponding thread in Unity Forum can be found [here](http://forum.unity3d.com/threads/true-volumetric-lights-open-source-soon.390818/).
 
+### Future plans
+* Temporal filter
+* Full atmospheric scattering
+* Volumetric clouds
+
 ### Demo Project
 I developed this technology for my hobby project. It was never meant for real use and it is therefore little rough around the edges.
 
@@ -41,7 +46,7 @@ Several sample scenes are part of this project.
 ![alt tag](https://agupya-dm2305.files.1drv.com/y3mobk9viWO3q53gQlSGj7Libj929UoUR4WlQBu5aY5K57aBg3dly30hnHi7sLZwO1_OTPqvXb9Ifa3L46HFuuNZ_AEMijAK3hFJagQ-uxUHUCI5E5fSVFIpYGgeF_yS7AQwi-sloHyxFwdg4vD46aujZDYxlRCFG006cU-f_y4BnE?width=2338&height=650&cropmode=none)
 * High/Low Shadow Strength. This technique uses single scattering model. That makes areas in shadow unnaturally dark. Use Shadow Strength to "simulate" multiple scattering.
 ![alt tag](https://aguqya-dm2305.files.1drv.com/y3mQZxpA5UbrBUPIMo44IfWChUXznaOaxBLbyqcCL-SN2y_o7mz8CJudvjWR_PdfwqPJ2i7VXIqO917oUBGhYkj-KS1pFXPHJk-GYQ_HPLmWKtDvwcqKDKPYwJy3JzQQE9IP38OIA6yQViA4olICpZkxmPpqhmYZbHemwdc5vEyz0s?width=2338&height=650&cropmode=none)
-* Heigth fog with different scale
+* Height fog with different scale
 ![alt tag](https://bqu4ya-dm2305.files.1drv.com/y3mmmE_KTmAE9MRLeoYFM3wkPDDjcUJyDA89Z1yorEND1GWkp4pW3Xo6iEdSQa0r8Ciz1hXT6XFufQQGO1id3vfybIgX2vw9hhJpwLGm4SMQ33CKdtnVkTTct_tYN0tW_g5cfXyNxFBEPshRUuP_-idZf5Hg4qaU5zrc8m6kIeDbZg?width=2338&height=650&cropmode=none)
 * High/Low Skybox Extinction parameter
 ![alt tag](https://bqu3ya-dm2305.files.1drv.com/y3mxWdkqeJLzQKmg9OI8Xd2P0cZ1YAs6g5n0CihQLpcyfigapIjFUTYvVo4-vikHtMfMwyOoQMsprqydKNaDgEHwckqNx6ATTqcuNEanUQ9256-D4l3iSConnDO12nk9y_lIm_Ztu7Fuib7G7mW1rgF4Rc5tJOiwLIN7l08_4fTZAc?width=2338&height=650&cropmode=none)
@@ -50,7 +55,7 @@ Several sample scenes are part of this project.
 Volumetric fog can be rendered in smaller resolution as an optimization. Set rendering resolution in VolumetricLightRenderer script.
 * Full resolution - best quality, poor performance. Serves as a "ground truth".
 * Half resolution - best quality/performance ratio.
-* Quarter resolution - experimental. Worse quality. No real performance gain for one or two lights. Try to use it when you have many lights.
+* Quarter resolution - experimental. Worse quality, best performance.
 
 ### Requirements
 * Unity 5 (tested on 5.3.4)
@@ -63,7 +68,7 @@ Volumetric fog can be rendered in smaller resolution as an optimization. Set ren
 * Doesn't handle transparent geometry correctly (cutout is ok)
 * 3d noise texture is hard coded. VolumetricLightRenderer has custom dds file loader that loads one specific 3d texture (Unity doesn't support 3d textures loaded from file). File "NoiseVolume.bytes" has to be in Resources folder.
 * Shadow fading is not implemented
-* Parameters and thresholds for bilateral blur and upscale are hard-coded in shaders. 
+* Parameters and thresholds for bilateral blur and upscale are hard-coded in shaders. Different projects may need different constants. Look into BilateralBlur.shader. There are several constants at the beginning that control downsampling, blur and upsampling. 
 
 ### Technique overview
 * Create render target for volumetric light (volume light buffer)

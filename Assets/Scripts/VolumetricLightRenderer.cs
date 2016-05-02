@@ -128,6 +128,20 @@ public class VolumetricLightRenderer : MonoBehaviour
     /// 
     /// </summary>
     /// <returns></returns>
+    public RenderTexture GetVolumeLightDepthBuffer()
+    {
+        if (Resolution == VolumtericResolution.Quarter)
+            return _quarterDepthBuffer;
+        else if (Resolution == VolumtericResolution.Half)
+            return _halfDepthBuffer;
+        else
+            return null;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
     public static Texture GetDefaultSpotCookie()
     {
         return _defaultSpotCookie;
@@ -240,6 +254,7 @@ public class VolumetricLightRenderer : MonoBehaviour
             _halfVolumeLightTexture.filterMode = FilterMode.Point;
 
             _halfDepthBuffer = new RenderTexture(width/2, height/2, 0, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear);
+            _halfDepthBuffer.name = "VolumeLightHalfDepth";
             _halfDepthBuffer.Create();
             _halfDepthBuffer.filterMode = FilterMode.Point;                    
 
@@ -261,6 +276,7 @@ public class VolumetricLightRenderer : MonoBehaviour
             _quarterVolumeLightTexture.filterMode = FilterMode.Point;
 
             _quarterDepthBuffer = new RenderTexture(width / 4, height / 4, 0, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear);
+            _quarterDepthBuffer.name = "VolumeLightQuarterDepth";
             _quarterDepthBuffer.Create();
             _quarterDepthBuffer.filterMode = FilterMode.Point;
 
@@ -272,36 +288,31 @@ public class VolumetricLightRenderer : MonoBehaviour
         _postLightPass.Clear();
 
         if (Resolution == VolumtericResolution.Quarter)
-        {
-            Texture nullTexture = null;
-            // down sample depth to half res
-            _postLightPass.Blit(nullTexture, _halfDepthBuffer, _bilateralBlurMaterial, 4);
-            // down sample depth to quarter res
-            _postLightPass.Blit(nullTexture, _quarterDepthBuffer, _bilateralBlurMaterial, 6);
+        {            
+            _postLightPass.GetTemporaryRT(Shader.PropertyToID("VolumeLightBufferTemp"), _quarterDepthBuffer.width, _quarterDepthBuffer.height, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
 
-            _postLightPass.GetTemporaryRT(Shader.PropertyToID("VolumeLightBufferTemp"), _volumeLightTexture.width, _volumeLightTexture.height, 0, FilterMode.Bilinear, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
-            // upscale to full res
-            _postLightPass.Blit(new RenderTargetIdentifier(_quarterVolumeLightTexture), new RenderTargetIdentifier(_volumeLightTexture), _bilateralBlurMaterial, 7);
-            //_postLightPass.Blit(new RenderTargetIdentifier(_halfVolumeLightTexture), new RenderTargetIdentifier(_volumeLightTexture), _bilateralBlurMaterial, 5);
             // horizontal bilateral blur at full res
-            _postLightPass.Blit(new RenderTargetIdentifier(_volumeLightTexture), new RenderTargetIdentifier("VolumeLightBufferTemp"), _bilateralBlurMaterial, 8);
+            _postLightPass.Blit(new RenderTargetIdentifier(_quarterVolumeLightTexture), new RenderTargetIdentifier("VolumeLightBufferTemp"), _bilateralBlurMaterial, 8);
             // vertical bilateral blur at full res
-            _postLightPass.Blit(new RenderTargetIdentifier("VolumeLightBufferTemp"), new RenderTargetIdentifier(_volumeLightTexture), _bilateralBlurMaterial, 9);
+            _postLightPass.Blit(new RenderTargetIdentifier("VolumeLightBufferTemp"), new RenderTargetIdentifier(_quarterVolumeLightTexture), _bilateralBlurMaterial, 9);
+
+            // upscale to full res
+            _postLightPass.Blit(new RenderTargetIdentifier(_quarterVolumeLightTexture), new RenderTargetIdentifier(_halfVolumeLightTexture), _bilateralBlurMaterial, 7);
+            _postLightPass.Blit(new RenderTargetIdentifier(_halfVolumeLightTexture), new RenderTargetIdentifier(_volumeLightTexture), _bilateralBlurMaterial, 5);
+            
             _postLightPass.ReleaseTemporaryRT(Shader.PropertyToID("VolumeLightBufferTemp"));
         }
         else if (Resolution == VolumtericResolution.Half)
         {
-            Texture nullTexture = null;
-            // down sample depth to half res
-            _postLightPass.Blit(nullTexture, _halfDepthBuffer, _bilateralBlurMaterial, 4);
+            _postLightPass.GetTemporaryRT(Shader.PropertyToID("VolumeLightBufferTemp"), _halfVolumeLightTexture.width, _halfVolumeLightTexture.height, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
 
-            _postLightPass.GetTemporaryRT(Shader.PropertyToID("VolumeLightBufferTemp"), _volumeLightTexture.width, _volumeLightTexture.height, 0, FilterMode.Bilinear, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+            // horizontal bilateral blur at full res
+            _postLightPass.Blit(new RenderTargetIdentifier(_halfVolumeLightTexture), new RenderTargetIdentifier("VolumeLightBufferTemp"), _bilateralBlurMaterial, 2);
+            // vertical bilateral blur at full res
+            _postLightPass.Blit(new RenderTargetIdentifier("VolumeLightBufferTemp"), new RenderTargetIdentifier(_halfVolumeLightTexture), _bilateralBlurMaterial, 3);
+
             // upscale to full res
             _postLightPass.Blit(new RenderTargetIdentifier(_halfVolumeLightTexture), new RenderTargetIdentifier(_volumeLightTexture), _bilateralBlurMaterial, 5);
-            // horizontal bilateral blur at full res
-            _postLightPass.Blit(new RenderTargetIdentifier(_volumeLightTexture), new RenderTargetIdentifier("VolumeLightBufferTemp"), _bilateralBlurMaterial, 2);
-            // vertical bilateral blur at full res
-            _postLightPass.Blit(new RenderTargetIdentifier("VolumeLightBufferTemp"), new RenderTargetIdentifier(_volumeLightTexture), _bilateralBlurMaterial, 3);
             _postLightPass.ReleaseTemporaryRT(Shader.PropertyToID("VolumeLightBufferTemp"));
         }
         else
@@ -331,11 +342,27 @@ public class VolumetricLightRenderer : MonoBehaviour
         _preLightPass.Clear();
 
         if (Resolution == VolumtericResolution.Quarter)
+        {
+            Texture nullTexture = null;
+            // down sample depth to half res
+            _preLightPass.Blit(nullTexture, _halfDepthBuffer, _bilateralBlurMaterial, 4);
+            // down sample depth to quarter res
+            _preLightPass.Blit(nullTexture, _quarterDepthBuffer, _bilateralBlurMaterial, 6);
+            
             _preLightPass.SetRenderTarget(_quarterVolumeLightTexture);
+        }
         else if (Resolution == VolumtericResolution.Half)
+        {
+            Texture nullTexture = null;
+            // down sample depth to half res
+            _preLightPass.Blit(nullTexture, _halfDepthBuffer, _bilateralBlurMaterial, 4);
+            
             _preLightPass.SetRenderTarget(_halfVolumeLightTexture);
-        else            
+        }
+        else
+        {
             _preLightPass.SetRenderTarget(_volumeLightTexture, BuiltinRenderTextureType.CameraTarget);
+        }
 
         _preLightPass.ClearRenderTarget(false, true, new Color(0, 0, 0, 1));
         
