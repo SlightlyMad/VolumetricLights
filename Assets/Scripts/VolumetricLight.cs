@@ -128,6 +128,8 @@ public class VolumetricLight : MonoBehaviour
         if (!_light.gameObject.activeInHierarchy)
             return;
 
+        _material.SetVector("_CameraForward", Camera.current.transform.forward);
+
         _material.SetInt("_SampleCount", SampleCount);
         _material.SetVector("_NoiseVelocity", new Vector4(NoiseVelocity.x, NoiseVelocity.y) * NoiseScale);
         _material.SetVector("_NoiseData", new Vector4(NoiseScale, NoiseIntensity, NoiseIntensityOffset));

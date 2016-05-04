@@ -61,6 +61,8 @@ Shader "Sandbox/VolumetricLight"
 		float4x4 _MyLightMatrix0;
 		float4x4 _MyWorld2Shadow;
 
+		float3 _CameraForward;
+
 		// x: scattering coef, y: extinction coef, z: range w: skybox extinction coef
 		float4 _VolumetricLight;
         // x: 1 - g^2, y: 1 + g^2, z: 2*g, w: 1/4pi
@@ -390,7 +392,9 @@ Shader "Sandbox/VolumetricLight"
 
 				rayDir /= rayLength;
 
-				rayLength = min(rayLength, LinearEyeDepth(depth));
+				float linearDepth = LinearEyeDepth(depth);
+				float projectedDepth = linearDepth / dot(_CameraForward, rayDir);
+				rayLength = min(rayLength, projectedDepth);
 				
 				return RayMarch(i, rayStart, rayDir, rayLength);
 			}
@@ -437,7 +441,9 @@ Shader "Sandbox/VolumetricLight"
 
 				rayDir /= rayLength;
 
-				rayLength = min(rayLength, LinearEyeDepth(depth));
+				float linearDepth = LinearEyeDepth(depth);
+				float projectedDepth = linearDepth / dot(_CameraForward, rayDir);
+				rayLength = min(rayLength, projectedDepth);
 
 				return RayMarch(i, rayStart, rayDir, rayLength);
 			}
@@ -491,7 +497,9 @@ Shader "Sandbox/VolumetricLight"
 				float start = -b - d;
 				float end = -b + d;
 
-				end = min(end, LinearEyeDepth(depth));
+				float linearDepth = LinearEyeDepth(depth);
+				float projectedDepth = linearDepth / dot(_CameraForward, rayDir);
+				end = min(end, projectedDepth);
 
 				rayStart = rayStart + rayDir * start;
 				rayLength = end - start;
@@ -556,7 +564,10 @@ Shader "Sandbox/VolumetricLight"
 				// ray cone intersection
 				float2 lineCoords = RayConeIntersect(_ConeApex, _ConeAxis, _CosAngle, r1, rayDir);
 
-				float z = (LinearEyeDepth(depth) - rayLength);
+				float linearDepth = LinearEyeDepth(depth);
+				float projectedDepth = linearDepth / dot(_CameraForward, rayDir);
+
+				float z = (projectedDepth - rayLength);
 				rayLength = min(planeCoord, min(lineCoords.x, lineCoords.y));
 				rayLength = min(rayLength, z);
 
@@ -605,8 +616,9 @@ Shader "Sandbox/VolumetricLight"
 				rayDir /= rayLength;
 
 				float linearDepth = LinearEyeDepth(depth);
+				float projectedDepth = linearDepth / dot(_CameraForward, rayDir);
 
-				rayLength = min(rayLength, linearDepth);
+				rayLength = min(rayLength, projectedDepth);
 
 				float4 color = RayMarch(i, rayStart, rayDir, rayLength);
 
