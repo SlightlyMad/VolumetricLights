@@ -361,7 +361,7 @@ public class VolumetricLightRenderer : MonoBehaviour
         }
         else
         {
-            _preLightPass.SetRenderTarget(_volumeLightTexture, BuiltinRenderTextureType.CameraTarget);
+            _preLightPass.SetRenderTarget(_volumeLightTexture);
         }
 
         _preLightPass.ClearRenderTarget(false, true, new Color(0, 0, 0, 1));
