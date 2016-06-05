@@ -445,11 +445,17 @@ public class VolumetricLightRenderer : MonoBehaviour
             return;
         }
 
+        int size = 8;
+#if DITHER_4_4
+        size = 4;
+#endif
         // again, I couldn't make it work with Alpha8
-        _ditheringTexture = new Texture2D(4, 4, TextureFormat.RGBA32, false);
-        Color32[] c = new Color32[4 * 4];
+        _ditheringTexture = new Texture2D(size, size, TextureFormat.Alpha8, false, true);
+        _ditheringTexture.filterMode = FilterMode.Point;
+        Color32[] c = new Color32[size * size];
 
         byte b;
+#if DITHER_4_4
         b = (byte)(0.0f / 16.0f * 255); c[0] = new Color32(b, b, b, b);
         b = (byte)(8.0f / 16.0f * 255); c[1] = new Color32(b, b, b, b);
         b = (byte)(2.0f / 16.0f * 255); c[2] = new Color32(b, b, b, b);
@@ -469,6 +475,80 @@ public class VolumetricLightRenderer : MonoBehaviour
         b = (byte)(7.0f / 16.0f * 255); c[13] = new Color32(b, b, b, b);
         b = (byte)(13.0f / 16.0f * 255); c[14] = new Color32(b, b, b, b);
         b = (byte)(5.0f / 16.0f * 255); c[15] = new Color32(b, b, b, b);
+#else
+        int i = 0;
+        b = (byte)(1.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(49.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(13.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(61.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(4.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(52.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(16.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(64.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+
+        b = (byte)(33.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(17.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(45.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(29.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(36.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(20.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(48.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(32.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+
+        b = (byte)(9.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(57.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(5.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(53.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(12.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(60.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(8.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(56.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+
+        b = (byte)(41.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(25.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(37.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(21.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(44.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(28.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(40.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(24.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+
+        b = (byte)(3.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(51.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(15.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(63.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(2.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(50.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(14.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(62.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+
+        b = (byte)(35.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(19.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(47.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(31.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(34.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(18.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(46.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(30.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+
+        b = (byte)(11.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(59.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(7.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(55.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(10.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(58.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(6.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(54.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+
+        b = (byte)(43.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(27.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(39.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(23.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(42.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(26.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(38.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+        b = (byte)(22.0f / 65.0f * 255); c[i++] = new Color32(b, b, b, b);
+#endif
 
         _ditheringTexture.SetPixels32(c);
         _ditheringTexture.Apply();

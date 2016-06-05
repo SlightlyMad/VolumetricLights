@@ -241,9 +241,9 @@ Shader "Sandbox/VolumetricLight"
 		//-----------------------------------------------------------------------------------------
 		// MieScattering
 		//-----------------------------------------------------------------------------------------
-		float MieScattering(float cosAngle)
+		float MieScattering(float cosAngle, float4 g)
 		{
-            return _MieG.w * (_MieG.x / (pow(_MieG.y - _MieG.z * cosAngle, 1.5)));			
+            return g.w * (g.x / (pow(g.y - g.z * cosAngle, 1.5)));			
 		}
 
 		//-----------------------------------------------------------------------------------------
@@ -251,8 +251,13 @@ Shader "Sandbox/VolumetricLight"
 		//-----------------------------------------------------------------------------------------
 		float4 RayMarch(v2f i, float3 rayStart, float3 rayDir, float rayLength)
 		{
+#ifdef DITHER_4_4
 			float2 interleavedPos = (fmod(floor(i.pos.xy), 4.0));
 			float offset = tex2D(_DitherTexture, interleavedPos / 4.0 + float2(0.5 / 4.0, 0.5 / 4.0)).w;
+#else
+			float2 interleavedPos = (fmod(floor(i.pos.xy), 8.0));
+			float offset = tex2D(_DitherTexture, interleavedPos / 8.0 + float2(0.5 / 8.0, 0.5 / 8.0)).w;
+#endif
 
 			int stepCount = _SampleCount;
 
@@ -280,20 +285,28 @@ Shader "Sandbox/VolumetricLight"
                 float scattering = _VolumetricLight.x * stepSize * density;
 				extinction += _VolumetricLight.y * stepSize * density;// +scattering;
 
-				float4 light = atten * _LightColor * scattering * exp(-extinction);
+				float4 light = atten * scattering * exp(-extinction);
 
 //#if PHASE_FUNCTOIN
 #if !defined (DIRECTIONAL) && !defined (DIRECTIONAL_COOKIE)
+				// phase functino for spot and point lights
                 float3 tolight = normalize(currentPosition - _LightPos.xyz);
                 cosAngle = dot(tolight, -rayDir);
-#endif
-                light *= MieScattering(cosAngle);
+				light *= MieScattering(cosAngle, _MieG);
+#endif          
 //#endif
-
 				vlight += light;
 
 				currentPosition += step;				
 			}
+
+#if defined (DIRECTIONAL) || defined (DIRECTIONAL_COOKIE)
+			// apply phase function for dir light
+			vlight *= MieScattering(cosAngle, _MieG);
+#endif
+
+			// apply light's color
+			vlight *= _LightColor;
 
 			vlight = max(0, vlight);
 #if defined (DIRECTIONAL) || defined (DIRECTIONAL_COOKIE) // use "proper" out-scattering/absorption for dir light 
