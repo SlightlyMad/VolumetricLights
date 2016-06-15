@@ -363,7 +363,7 @@ public class VolumetricLight : MonoBehaviour
 
         Mesh mesh = VolumetricLightRenderer.GetDirLightMesh();
         
-        float zScale = Mathf.Min(Camera.current.farClipPlane, MaxRayLength);
+        float zScale = Mathf.Min(Camera.current.farClipPlane * 0.98f, MaxRayLength);
         float yScale = Camera.current.farClipPlane * Mathf.Tan(Mathf.Deg2Rad * Camera.current.fieldOfView * 0.5f);
         float xScale = yScale * Camera.current.aspect;
         Matrix4x4 world = Matrix4x4.TRS(Camera.current.transform.position, Camera.current.transform.rotation, new Vector3(xScale, yScale, zScale));
