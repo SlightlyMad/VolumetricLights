@@ -87,3 +87,8 @@ Volumetric fog can be rendered in smaller resolution as an optimization. Set ren
 * Add temporal filter to improve image quality and stability in motion. Change sampling pattern every frame to get more ray marching steps at no additional cost (works only with temporal filter)
 * Bilateral blur and upscale can be improved
 * I didn't try to optimize the shaders, there is likely room for improvement.
+ 
+### Donations
+I've been asked about donation button several times now. I don't feel very comfortable about it. I don't need the money. I have a well paid job. It could also give the impression that I would use the money for further development. But that is certainly not the case. 
+
+But if you really like it and you want to brighten my day then you can always buy me a little gift. Send me [Amazon](https://www.amazon.com/Amazon-Amazon-com-eGift-Cards/dp/BT00DC6QU4) or [Steam](https://www.paypal-gifts.com/uk/brands/steam-digital-wallet-code.html) gift card and I'll buy myself something shiny. You can find my email in my profile. 
