@@ -207,7 +207,7 @@ public class VolumetricLight : MonoBehaviour
             _material.DisableKeyword("NOISE");
 
         _material.SetVector("_LightPos", new Vector4(_light.transform.position.x, _light.transform.position.y, _light.transform.position.z, 1.0f / (_light.range * _light.range)));
-        _material.SetVector("_LightColor", _light.color * _light.intensity);
+        _material.SetColor("_LightColor", _light.color * _light.intensity);
 
         if (_light.cookie == null)
         {
@@ -391,8 +391,7 @@ public class VolumetricLight : MonoBehaviour
 
             _material.SetTexture("_LightTexture0", _light.cookie);
         }
-
-        Texture texture = null;
+        
         if (_light.shadows != LightShadows.None)
         {
             _material.EnableKeyword("SHADOWS_DEPTH");
