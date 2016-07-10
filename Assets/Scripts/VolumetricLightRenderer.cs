@@ -395,11 +395,7 @@ public class VolumetricLightRenderer : MonoBehaviour
     /// </summary>
     void LoadNoise3dTexture()
     {
-        // dds loader hard coded for 128x128x128 3d texture
-
-        // doesn't work with TextureFormat.Alpha8 for soem reason
-        _noiseTexture = new Texture3D(128, 128, 128, TextureFormat.RGBA32, false);
-        _noiseTexture.name = "3D Noise";
+        // basic dds loader for 3d texture - !not very robust!
 
         TextAsset data = Resources.Load("NoiseVolume") as TextAsset;
 
@@ -409,22 +405,49 @@ public class VolumetricLightRenderer : MonoBehaviour
         uint width = BitConverter.ToUInt32(data.bytes, 16);
         uint pitch = BitConverter.ToUInt32(data.bytes, 20);
         uint depth = BitConverter.ToUInt32(data.bytes, 24);
+        uint formatFlags = BitConverter.ToUInt32(data.bytes, 20 * 4);
+        uint fourCC = BitConverter.ToUInt32(data.bytes, 21 * 4);
         uint bitdepth = BitConverter.ToUInt32(data.bytes, 22 * 4);
+        if (bitdepth == 0)
+            bitdepth = pitch / width * 8;
 
-        Color[] c = new Color[128 * 128 * 128];
+
+        // doesn't work with TextureFormat.Alpha8 for some reason
+        _noiseTexture = new Texture3D((int)width, (int)height, (int)depth, TextureFormat.RGBA32, false);
+        _noiseTexture.name = "3D Noise";
+
+        Color[] c = new Color[width * height * depth];
+
         uint index = 128;
+        if (data.bytes[21 * 4] == 'D' && data.bytes[21 * 4 + 1] == 'X' && data.bytes[21 * 4 + 2] == '1' && data.bytes[21 * 4 + 3] == '0' &&
+            (formatFlags & 0x4) != 0)
+        {
+            uint format = BitConverter.ToUInt32(data.bytes, (int)index);
+            if (format >= 60 && format <= 65)
+                bitdepth = 8;
+            else if (format >= 48 && format <= 52)
+                bitdepth = 16;
+            else if (format >= 27 && format <= 32)
+                bitdepth = 32;
+            
+            //Debug.Log("DXGI format: " + format);
+            // dx10 format, skip dx10 header
+            //Debug.Log("DX10 format");
+            index += 20;
+        }
+
+        uint byteDepth = bitdepth / 8;
         pitch = (width * bitdepth + 7) / 8;
 
-        Color m = new Color(0, 0, 0, 0);
-        for (int d = 0; d < 128; ++d)
+        for (int d = 0; d < depth; ++d)
         {
             //index = 128;
-            for (int i = 0; i < 128; ++i)
+            for (int h = 0; h < height; ++h)
             {
-                for (int j = 0; j < 128; ++j)
+                for (int w = 0; w < width; ++w)
                 {
-                    float v = (bytes[index + j] / 255.0f);
-                    c[i + j * 128 + d * 128 * 128] = new Color(v, v, v, v);
+                    float v = (bytes[index + w * byteDepth] / 255.0f);
+                    c[w + h * width + d * width * height] = new Color(v, v, v, v);
                 }
 
                 index += pitch;
