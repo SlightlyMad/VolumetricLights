@@ -39,6 +39,9 @@ Volumetric lights will respect standard light's parameters like color, intensity
 
 Several sample scenes are part of this project.
 
+#### Building a standalone player
+**_IMPORTANT_** - Standalone player will work only if all shaders are included in build! All shaders must be added into "Always Included Shaders" in ProjectSettings/Graphics.
+
 #### Example scene with different parameters
 * Low/High Scattering and Extinction parameters
 ![alt tag](https://agu1ya-dm2305.files.1drv.com/y3mgo5ud5huq-SUjw4z8gGjB9JBoWBhIerh46Oh18e6GVoy7lR6vffSZeK50e7FnTINV04B20jmSGiyRrodTTVgYGkZ00goIWjvKMaxMQS9eygkKSKansmWCHR0lzJ-v0Rag8-_h4-iJZjD304lRqSmgHT7KAZpNJIeRnihNJ4Y03k?width=2338&height=650&cropmode=none)
