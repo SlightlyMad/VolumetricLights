@@ -52,13 +52,14 @@ Shader "Sandbox/VolumetricLight"
 
 		//sampler2D _ShadowMapTexture;
 
+		float4 _FrustumCorners[4];
+
 		struct appdata
 		{
 			float4 vertex : POSITION;
 		};
-
+		
 		float4x4 _WorldViewProj;
-		float4x4 _WorldView;
 		float4x4 _MyLightMatrix0;
 		float4x4 _MyWorld2Shadow;
 
@@ -76,6 +77,8 @@ Shader "Sandbox/VolumetricLight"
 		// x:  ground level, y: height scale, z: unused, w: unused
 		float4 _HeightFog;
 		//float4 _LightDir;
+
+		float _MaxRayLength;
 
 		int _SampleCount;
 
@@ -243,13 +246,13 @@ Shader "Sandbox/VolumetricLight"
 		//-----------------------------------------------------------------------------------------
 		// RayMarch
 		//-----------------------------------------------------------------------------------------
-		float4 RayMarch(v2f i, float3 rayStart, float3 rayDir, float rayLength)
+		float4 RayMarch(float2 screenPos, float3 rayStart, float3 rayDir, float rayLength)
 		{
 #ifdef DITHER_4_4
-			float2 interleavedPos = (fmod(floor(i.pos.xy), 4.0));
+			float2 interleavedPos = (fmod(floor(screenPos.xy), 4.0));
 			float offset = tex2D(_DitherTexture, interleavedPos / 4.0 + float2(0.5 / 4.0, 0.5 / 4.0)).w;
 #else
-			float2 interleavedPos = (fmod(floor(i.pos.xy), 8.0));
+			float2 interleavedPos = (fmod(floor(screenPos.xy), 8.0));
 			float offset = tex2D(_DitherTexture, interleavedPos / 8.0 + float2(0.5 / 8.0, 0.5 / 8.0)).w;
 #endif
 
@@ -403,7 +406,7 @@ Shader "Sandbox/VolumetricLight"
 				float projectedDepth = linearDepth / dot(_CameraForward, rayDir);
 				rayLength = min(rayLength, projectedDepth);
 				
-				return RayMarch(i, rayStart, rayDir, rayLength);
+				return RayMarch(i.pos.xy, rayStart, rayDir, rayLength);
 			}
 			ENDCG
 		}
@@ -452,7 +455,7 @@ Shader "Sandbox/VolumetricLight"
 				float projectedDepth = linearDepth / dot(_CameraForward, rayDir);
 				rayLength = min(rayLength, projectedDepth);
 
-				return RayMarch(i, rayStart, rayDir, rayLength);
+				return RayMarch(i.pos.xy, rayStart, rayDir, rayLength);
 			}
 			ENDCG
 		}
@@ -511,7 +514,7 @@ Shader "Sandbox/VolumetricLight"
 				rayStart = rayStart + rayDir * start;
 				rayLength = end - start;
 
-				return RayMarch(i, rayStart, rayDir, rayLength);
+				return RayMarch(i.pos.xy, rayStart, rayDir, rayLength);
 			}
 			ENDCG
 		}
@@ -578,7 +581,7 @@ Shader "Sandbox/VolumetricLight"
 				rayLength = min(planeCoord, min(lineCoords.x, lineCoords.y));
 				rayLength = min(rayLength, z);
 
-				return RayMarch(i, rayEnd, rayDir, rayLength);
+				return RayMarch(i.pos.xy, rayEnd, rayDir, rayLength);
 			}
 			ENDCG
 		}		
@@ -593,7 +596,7 @@ Shader "Sandbox/VolumetricLight"
 
 			CGPROGRAM
 
-#pragma vertex vert
+#pragma vertex vertDir
 #pragma fragment fragDir
 #pragma target 4.0
 
@@ -610,32 +613,56 @@ Shader "Sandbox/VolumetricLight"
 #define SHADOWS_NATIVE
 #endif
 
-			fixed4 fragDir(v2f i) : SV_Target
-			{				
-				float2 uv = i.uv.xy / i.uv.w;
-				float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, uv);
-													
-				float3 rayStart = _WorldSpaceCameraPos;
-				float3 rayEnd = i.wpos;
+			struct VSInput
+			{
+				float4 vertex : POSITION;
+				float2 uv : TEXCOORD0;
+				uint vertexId : SV_VertexID;
+			};
 
-				float3 rayDir = (rayEnd - rayStart);
+			struct PSInput
+			{
+				float4 pos : SV_POSITION;
+				float2 uv : TEXCOORD0;
+				float3 wpos : TEXCOORD1;
+			};
+			
+			PSInput vertDir(VSInput i)
+			{
+				PSInput o;
+
+				o.pos = mul(UNITY_MATRIX_MVP, i.vertex);
+				o.uv = i.uv;
+				o.wpos = _FrustumCorners[i.vertexId];
+
+				return o;
+			}
+
+			fixed4 fragDir(PSInput i) : SV_Target
+			{		
+				float2 uv = i.uv.xy;
+				float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, uv);
+				float linearDepth = Linear01Depth(depth);
+
+				float3 wpos = i.wpos;
+				float3 rayStart = _WorldSpaceCameraPos;
+				float3 rayDir = wpos - _WorldSpaceCameraPos;				
+				rayDir *= linearDepth;
+
 				float rayLength = length(rayDir);
 				rayDir /= rayLength;
 
-				float linearDepth = LinearEyeDepth(depth);
-				float projectedDepth = linearDepth / dot(_CameraForward, rayDir);
+				rayLength = min(rayLength, _MaxRayLength);
 
-				rayLength = min(rayLength, projectedDepth);
+				float4 color = RayMarch(i.pos.xy, rayStart, rayDir, rayLength);
 
-				float4 color = RayMarch(i, rayStart, rayDir, rayLength);
-
-				if (linearDepth > _ProjectionParams.z * 0.99)
+				if (linearDepth > 0.999999)
 				{
 					color.w = lerp(color.w, 1, _VolumetricLight.w);
 				}
 				return color;
 			}
-				ENDCG
+			ENDCG
 		}
 	}
 }

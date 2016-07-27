@@ -46,7 +46,6 @@ public class VolumetricLightRenderer : MonoBehaviour
 
     private static Mesh _pointLightMesh;
     private static Mesh _spotLightMesh;
-    private static Mesh _dirLightMesh;
     private static Material _lightMaterial;
 
     private Camera _camera;
@@ -99,15 +98,6 @@ public class VolumetricLightRenderer : MonoBehaviour
     public static Mesh GetSpotLightMesh()
     {
         return _spotLightMesh;
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <returns></returns>
-    public static Mesh GetDirLightMesh()
-    {
-        return _dirLightMesh;
     }
 
     /// <summary>
@@ -190,11 +180,6 @@ public class VolumetricLightRenderer : MonoBehaviour
             _spotLightMesh = CreateSpotLightMesh();
         }
 
-        if (_dirLightMesh == null)
-        {
-            _dirLightMesh = CreateDirLightMesh();
-        }
-
         if (_lightMaterial == null)
         {
             shader = Shader.Find("Sandbox/VolumetricLight");
@@ -250,7 +235,7 @@ public class VolumetricLightRenderer : MonoBehaviour
         _volumeLightTexture.filterMode = FilterMode.Point;
         
         _bilateralBlurMaterial.SetVector("_RenderTargetSize", new Vector4(_volumeLightTexture.width, _volumeLightTexture.height, 1.0f / _volumeLightTexture.width, 1.0f / _volumeLightTexture.height));
-
+        _bilateralBlurMaterial.SetVector("_FullResTexelSize", new Vector4(1.0f / _camera.pixelWidth, 1.0f / _camera.pixelHeight, 0, 0));
 
         if (_halfDepthBuffer != null)
             Destroy(_halfDepthBuffer);
@@ -270,8 +255,7 @@ public class VolumetricLightRenderer : MonoBehaviour
 
             _bilateralBlurMaterial.SetTexture("_HalfResDepthBuffer", _halfDepthBuffer);
             _bilateralBlurMaterial.SetTexture("_HalfResColor", _halfVolumeLightTexture);
-            _bilateralBlurMaterial.SetVector("_HalfResTexelSize", new Vector4(1.0f / _halfDepthBuffer.width, 1.0f / _halfDepthBuffer.height, 0, 0));
-            _bilateralBlurMaterial.SetVector("_FullResTexelSize", new Vector4(1.0f / _camera.pixelWidth, 1.0f / _camera.pixelHeight, 0, 0));
+            _bilateralBlurMaterial.SetVector("_HalfResTexelSize", new Vector4(1.0f / _halfDepthBuffer.width, 1.0f / _halfDepthBuffer.height, 0, 0));            
         }
 
         if (_quarterVolumeLightTexture != null)
@@ -686,38 +670,6 @@ public class VolumetricLightRenderer : MonoBehaviour
         indices[index++] = 2 + segmentCount * 2;
         indices[index++] = segmentCount * 3 + 1;
 
-        mesh.triangles = indices;
-        mesh.RecalculateBounds();
-
-        return mesh;
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <returns></returns>
-    private Mesh CreateDirLightMesh()
-    {
-        Mesh mesh = new Mesh();
-        Vector3[] vertices = new Vector3[4];
-
-        vertices[0] = new Vector3(-1, -1, 1);
-        vertices[1] = new Vector3(-1,  1, 1);
-        vertices[2] = new Vector3( 1, -1, 1);
-        vertices[3] = new Vector3( 1,  1, 1);
-                
-        mesh.vertices = vertices;
-        
-        int[] indices = new int[6];
-
-        indices[0] = 0;
-        indices[1] = 1;
-        indices[2] = 2;
-
-        indices[3] = 2;
-        indices[4] = 1;
-        indices[5] = 3;
-        
         mesh.triangles = indices;
         mesh.RecalculateBounds();
 
