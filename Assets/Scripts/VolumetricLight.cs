@@ -68,10 +68,12 @@ public class VolumetricLight : MonoBehaviour
     public Light Light { get { return _light; } }
     public Material VolumetricMaterial { get { return _material; } }
     
+    public Vector4[] _frustumCorners = new Vector4[4];
+
     /// <summary>
     /// 
     /// </summary>
-	void Start() 
+    void Start() 
     {
         _commandBuffer = new CommandBuffer();
         _commandBuffer.name = "Light Command Buffer";
@@ -387,15 +389,23 @@ public class VolumetricLight : MonoBehaviour
         }
 
         // setup frustum corners for world position reconstruction
-        Vector3 bottomLeftCorner = Camera.current.ViewportToWorldPoint(new Vector3(0, 0, Camera.current.farClipPlane));
-        Vector3 topLeftCorner = Camera.current.ViewportToWorldPoint(new Vector3(0, 1, Camera.current.farClipPlane));
-        Vector3 topRightCorner = Camera.current.ViewportToWorldPoint(new Vector3(1, 1, Camera.current.farClipPlane));
-        Vector3 bottomRightCorner = Camera.current.ViewportToWorldPoint(new Vector3(1, 0, Camera.current.farClipPlane));        
+        // bottom left
+        _frustumCorners[0] = Camera.current.ViewportToWorldPoint(new Vector3(0, 0, Camera.current.farClipPlane));
+        // top left
+        _frustumCorners[1] = Camera.current.ViewportToWorldPoint(new Vector3(0, 1, Camera.current.farClipPlane));
+        // top right
+        _frustumCorners[2] = Camera.current.ViewportToWorldPoint(new Vector3(1, 1, Camera.current.farClipPlane));
+        // bottom right
+        _frustumCorners[3] = Camera.current.ViewportToWorldPoint(new Vector3(1, 0, Camera.current.farClipPlane));
 
-        _material.SetVector("_FrustumCorners0", bottomLeftCorner);
-        _material.SetVector("_FrustumCorners1", topLeftCorner);
-        _material.SetVector("_FrustumCorners2", topRightCorner);
-        _material.SetVector("_FrustumCorners3", bottomRightCorner);
+#if UNITY_5_4_OR_NEWER
+        _material.SetVectorArray("_FrustumCorners", _frustumCorners);
+#else
+        _material.SetVector("_FrustumCorners0", _frustumCorners[0]);
+        _material.SetVector("_FrustumCorners1", _frustumCorners[1]);
+        _material.SetVector("_FrustumCorners2", _frustumCorners[2]);
+        _material.SetVector("_FrustumCorners3", _frustumCorners[3]);
+#endif
 
         Texture nullTexture = null;
         if (_light.shadows != LightShadows.None)
