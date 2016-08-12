@@ -83,7 +83,7 @@ public class VolumetricLight : MonoBehaviour
         _cascadeShadowCommandBuffer.SetGlobalTexture("_CascadeShadowMapTexture", new UnityEngine.Rendering.RenderTargetIdentifier(UnityEngine.Rendering.BuiltinRenderTextureType.CurrentActive));
 
         _light = GetComponent<Light>();
-        _light.RemoveAllCommandBuffers();
+        //_light.RemoveAllCommandBuffers();
         if(_light.type == LightType.Directional)
         {
             _light.AddCommandBuffer(LightEvent.BeforeScreenspaceMask, _commandBuffer);
