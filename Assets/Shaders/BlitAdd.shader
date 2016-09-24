@@ -35,7 +35,7 @@ Shader "Hidden/BlitAdd"
 		Pass
 		{
 			ZTest Always Cull Off ZWrite Off
-			Blend One SrcAlpha
+			Blend One Zero
 
 			CGPROGRAM
 	#pragma vertex vert
@@ -44,6 +44,7 @@ Shader "Hidden/BlitAdd"
 	#include "UnityCG.cginc"
 
 			sampler2D _MainTex;
+			sampler2D _Source;
 			uniform float4 _MainTex_ST;
 
 			struct appdata_t 
@@ -68,7 +69,12 @@ Shader "Hidden/BlitAdd"
 
 			fixed4 frag(v2f i) : SV_Target
 			{
-				return tex2D(_MainTex, i.texcoord);
+				float4 main = tex2D(_MainTex, i.texcoord);
+				float4 source = tex2D(_Source, i.texcoord);
+
+				source *= main.w;
+				source.xyz += main.xyz;
+				return source;
 			}
 			ENDCG
 		}
