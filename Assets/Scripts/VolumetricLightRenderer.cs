@@ -277,13 +277,15 @@ public class VolumetricLightRenderer : MonoBehaviour
 
         _preLightPass.Clear();
 
+        bool dx11 = SystemInfo.graphicsShaderLevel > 40;
+
         if (Resolution == VolumtericResolution.Quarter)
         {
             Texture nullTexture = null;
             // down sample depth to half res
-            _preLightPass.Blit(nullTexture, _halfDepthBuffer, _bilateralBlurMaterial, 4);
+            _preLightPass.Blit(nullTexture, _halfDepthBuffer, _bilateralBlurMaterial, dx11 ? 4 : 10);
             // down sample depth to quarter res
-            _preLightPass.Blit(nullTexture, _quarterDepthBuffer, _bilateralBlurMaterial, 6);
+            _preLightPass.Blit(nullTexture, _quarterDepthBuffer, _bilateralBlurMaterial, dx11 ? 6 : 11);
 
             _preLightPass.SetRenderTarget(_quarterVolumeLightTexture);
         }
@@ -291,7 +293,7 @@ public class VolumetricLightRenderer : MonoBehaviour
         {
             Texture nullTexture = null;
             // down sample depth to half res
-            _preLightPass.Blit(nullTexture, _halfDepthBuffer, _bilateralBlurMaterial, 4);
+            _preLightPass.Blit(nullTexture, _halfDepthBuffer, _bilateralBlurMaterial, dx11 ? 4 : 10);
 
             _preLightPass.SetRenderTarget(_halfVolumeLightTexture);
         }

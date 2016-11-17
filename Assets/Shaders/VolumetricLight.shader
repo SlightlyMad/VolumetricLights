@@ -596,22 +596,22 @@ Shader "Sandbox/VolumetricLight"
 
 			CGPROGRAM
 
-#pragma vertex vertDir
-#pragma fragment fragDir
-#pragma target 4.0
+			#pragma vertex vertDir
+			#pragma fragment fragDir
+			#pragma target 4.0
 
-#define UNITY_HDR_ON
+			#define UNITY_HDR_ON
 
-#pragma shader_feature HEIGHT_FOG
-#pragma shader_feature NOISE
-#pragma shader_feature SHADOWS_DEPTH
-#pragma shader_feature SHADOWS_NATIVE
-#pragma shader_feature DIRECTIONAL_COOKIE
-#pragma shader_feature DIRECTIONAL
+			#pragma shader_feature HEIGHT_FOG
+			#pragma shader_feature NOISE
+			#pragma shader_feature SHADOWS_DEPTH
+			#pragma shader_feature SHADOWS_NATIVE
+			#pragma shader_feature DIRECTIONAL_COOKIE
+			#pragma shader_feature DIRECTIONAL
 
-#ifdef SHADOWS_DEPTH
-#define SHADOWS_NATIVE
-#endif
+			#ifdef SHADOWS_DEPTH
+			#define SHADOWS_NATIVE
+			#endif
 
 			struct VSInput
 			{
@@ -626,20 +626,23 @@ Shader "Sandbox/VolumetricLight"
 				float2 uv : TEXCOORD0;
 				float3 wpos : TEXCOORD1;
 			};
-			
+						
 			PSInput vertDir(VSInput i)
 			{
 				PSInput o;
 
 				o.pos = mul(UNITY_MATRIX_MVP, i.vertex);
 				o.uv = i.uv;
-				o.wpos = _FrustumCorners[i.vertexId];
 
+				// SV_VertexId doesn't work on OpenGL for some reason -> reconstruct id from uv
+				//o.wpos = _FrustumCorners[i.vertexId];
+				o.wpos = _FrustumCorners[i.uv.x + i.uv.y*2];
+				
 				return o;
 			}
 
 			fixed4 fragDir(PSInput i) : SV_Target
-			{		
+			{
 				float2 uv = i.uv.xy;
 				float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, uv);
 				float linearDepth = Linear01Depth(depth);

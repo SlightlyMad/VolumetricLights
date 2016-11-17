@@ -82,7 +82,14 @@ Shader "Hidden/BilateralBlur"
 
 		struct v2fDownsample
 		{
+#if SHADER_TARGET > 40
 			float2 uv : TEXCOORD0;
+#else
+			float2 uv00 : TEXCOORD0;
+			float2 uv01 : TEXCOORD1;
+			float2 uv10 : TEXCOORD2;
+			float2 uv11 : TEXCOORD3;
+#endif
 			float4 vertex : SV_POSITION;
 		};
 
@@ -111,7 +118,14 @@ Shader "Hidden/BilateralBlur"
 		{
 			v2fDownsample o;
 			o.vertex = mul(UNITY_MATRIX_MVP, v.vertex);
+#if SHADER_TARGET > 40
 			o.uv = v.uv;
+#else
+			o.uv00 = v.uv - 0.5 * texelSize.xy;
+			o.uv10 = o.uv00 + float2(texelSize.x, 0);
+			o.uv01 = o.uv00 + float2(0, texelSize.y);
+			o.uv11 = o.uv00 + texelSize.xy;
+#endif
 			return o;
 		}
 
@@ -185,7 +199,16 @@ Shader "Hidden/BilateralBlur"
 		//-----------------------------------------------------------------------------------------
 		float DownsampleDepth(v2fDownsample input, Texture2D depthTexture, SamplerState depthSampler)
 		{
+#if SHADER_TARGET > 40
             float4 depth = depthTexture.Gather(depthSampler, input.uv);
+#else
+			float4 depth;
+			depth.x = depthTexture.Sample(depthSampler, input.uv00).x;
+			depth.y = depthTexture.Sample(depthSampler, input.uv01).x;
+			depth.z = depthTexture.Sample(depthSampler, input.uv10).x;
+			depth.w = depthTexture.Sample(depthSampler, input.uv11).x;
+
+#endif
 
 #if DOWNSAMPLE_DEPTH_MODE == 0 // min  depth
             return min(min(depth.x, depth.y), min(depth.z, depth.w));
@@ -202,16 +225,7 @@ Shader "Hidden/BilateralBlur"
 			return index == 1 ? minDepth : maxDepth;
 #endif
 		}
-
-		//-----------------------------------------------------------------------------------------
-		// DownsampleDepthMax
-		//-----------------------------------------------------------------------------------------
-        float DownsampleDepthMax(v2fDownsample input, Texture2D depthTexture, SamplerState depthSampler)
-		{
-            float4 depth = depthTexture.Gather(depthSampler, input.uv);
-            return max(max(depth.x, depth.y), max(depth.z, depth.w));
-		}
-
+		
 		//-----------------------------------------------------------------------------------------
 		// GaussianWeight
 		//-----------------------------------------------------------------------------------------
@@ -289,7 +303,7 @@ Shader "Hidden/BilateralBlur"
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment horizontalFrag
-            #pragma target gl4.1
+            #pragma target 4.0
 			
 			fixed4 horizontalFrag(v2f input) : SV_Target
 			{
@@ -305,7 +319,7 @@ Shader "Hidden/BilateralBlur"
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment verticalFrag
-            #pragma target gl4.1
+            #pragma target 4.0
 			
 			fixed4 verticalFrag(v2f input) : SV_Target
 			{
@@ -321,7 +335,7 @@ Shader "Hidden/BilateralBlur"
 			CGPROGRAM
             #pragma vertex vert
             #pragma fragment horizontalFrag
-            #pragma target gl4.1
+            #pragma target 4.0
 
 			fixed4 horizontalFrag(v2f input) : SV_Target
 		{
@@ -337,7 +351,7 @@ Shader "Hidden/BilateralBlur"
 			CGPROGRAM
             #pragma vertex vert
             #pragma fragment verticalFrag
-            #pragma target gl4.1
+            #pragma target 4.0
 
 			fixed4 verticalFrag(v2f input) : SV_Target
 		{
@@ -376,7 +390,7 @@ Shader "Hidden/BilateralBlur"
 			CGPROGRAM
 			#pragma vertex vertUpsampleToFull
 			#pragma fragment frag		
-            #pragma target gl4.1
+            #pragma target 4.0
 
 			v2fUpsample vertUpsampleToFull(appdata v)
 			{
@@ -419,7 +433,7 @@ Shader "Hidden/BilateralBlur"
 			CGPROGRAM
             #pragma vertex vertUpsampleToFull
             #pragma fragment frag		
-            #pragma target gl4.1
+            #pragma target 4.0
 
 			v2fUpsample vertUpsampleToFull(appdata v)
 			{
@@ -439,7 +453,7 @@ Shader "Hidden/BilateralBlur"
 			CGPROGRAM
             #pragma vertex vert
             #pragma fragment horizontalFrag
-            #pragma target gl4.1
+            #pragma target 4.0
 
 			fixed4 horizontalFrag(v2f input) : SV_Target
 			{
@@ -455,11 +469,53 @@ Shader "Hidden/BilateralBlur"
 			CGPROGRAM
             #pragma vertex vert
             #pragma fragment verticalFrag
-            #pragma target gl4.1
+            #pragma target 4.0
 
 			fixed4 verticalFrag(v2f input) : SV_Target
 			{
                 return BilateralBlur(input, int2(0, 1), _QuarterResDepthBuffer, sampler_QuarterResDepthBuffer, QUARTER_RES_BLUR_KERNEL_SIZE, _QuarterResDepthBuffer_TexelSize.xy);
+			}
+
+			ENDCG
+		}
+
+		// pass 10 - downsample depth to half (fallback for DX10)
+		Pass
+		{
+			CGPROGRAM
+			#pragma vertex vertHalfDepth
+			#pragma fragment frag
+			#pragma target 4.0
+
+			v2fDownsample vertHalfDepth(appdata v)
+			{
+				return vertDownsampleDepth(v, _CameraDepthTexture_TexelSize);
+			}
+
+			float frag(v2fDownsample input) : SV_Target
+			{
+				return DownsampleDepth(input, _CameraDepthTexture, sampler_CameraDepthTexture);
+			}
+
+			ENDCG
+		}
+
+		// pass 11 - downsample depth to quarter (fallback for DX10)
+		Pass
+		{
+			CGPROGRAM
+			#pragma vertex vertQuarterDepth
+			#pragma fragment frag
+			#pragma target 4.0
+
+			v2fDownsample vertQuarterDepth(appdata v)
+			{
+				return vertDownsampleDepth(v, _HalfResDepthBuffer_TexelSize);
+			}
+
+			float frag(v2fDownsample input) : SV_Target
+			{
+				return DownsampleDepth(input, _HalfResDepthBuffer, sampler_HalfResDepthBuffer);
 			}
 
 			ENDCG
