@@ -68,7 +68,7 @@ public class VolumetricLight : MonoBehaviour
     public Light Light { get { return _light; } }
     public Material VolumetricMaterial { get { return _material; } }
     
-    public Vector4[] _frustumCorners = new Vector4[4];
+    private Vector4[] _frustumCorners = new Vector4[4];
 
     /// <summary>
     /// 
