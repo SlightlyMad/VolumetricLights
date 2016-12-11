@@ -70,11 +70,22 @@ public class VolumetricLight : MonoBehaviour
     
     private Vector4[] _frustumCorners = new Vector4[4];
 
+    private bool _reversedZ = false;
+
     /// <summary>
     /// 
     /// </summary>
     void Start() 
     {
+#if UNITY_5_5_OR_NEWER
+        if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12 ||
+            SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal || SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation4 ||
+            SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan || SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne)
+        {
+            _reversedZ = true;
+        }
+#endif
+
         _commandBuffer = new CommandBuffer();
         _commandBuffer.name = "Light Command Buffer";
 
@@ -130,7 +141,7 @@ public class VolumetricLight : MonoBehaviour
     /// <param name="viewProj"></param>
     private void VolumetricLightRenderer_PreRenderEvent(VolumetricLightRenderer renderer, Matrix4x4 viewProj)
     {
-        if (!_light.gameObject.activeInHierarchy)
+        if (!_light.gameObject.activeInHierarchy || _light.enabled == false)
             return;
 
         _material.SetVector("_CameraForward", Camera.current.transform.forward);
@@ -324,7 +335,11 @@ public class VolumetricLight : MonoBehaviour
         if (_light.shadows != LightShadows.None && forceShadowsOff == false)
         {
             clip = Matrix4x4.TRS(new Vector3(0.5f, 0.5f, 0.5f), Quaternion.identity, new Vector3(0.5f, 0.5f, 0.5f));
-            proj = Matrix4x4.Perspective(_light.spotAngle, 1, _light.shadowNearPlane, _light.range);
+
+            if(_reversedZ)
+                proj = Matrix4x4.Perspective(_light.spotAngle, 1, _light.range, _light.shadowNearPlane);
+            else
+                proj = Matrix4x4.Perspective(_light.spotAngle, 1, _light.shadowNearPlane, _light.range);
 
             Matrix4x4 m = clip * proj;
             m[0, 2] *= -1;
