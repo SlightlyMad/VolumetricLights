@@ -42,16 +42,16 @@ Shader "Sandbox/VolumetricLight"
 
 		CGINCLUDE
 
+		#if defined(SHADOWS_DEPTH) || defined(SHADOWS_CUBE)
 		#define SHADOWS_NATIVE
-
+		#endif
+		
 		#include "UnityCG.cginc"
 		#include "UnityDeferredLibrary.cginc"
 
 		sampler3D _NoiseTexture;
 		sampler2D _DitherTexture;
-
-		//sampler2D _ShadowMapTexture;
-
+		
 		float4 _FrustumCorners[4];
 
 		struct appdata
@@ -123,41 +123,15 @@ Shader "Sandbox/VolumetricLight"
 			float3 sc1 = mul(unity_World2Shadow[1], wpos).xyz;
 			float3 sc2 = mul(unity_World2Shadow[2], wpos).xyz;
 			float3 sc3 = mul(unity_World2Shadow[3], wpos).xyz;
-			return float4(sc0 * cascadeWeights[0] + sc1 * cascadeWeights[1] + sc2 * cascadeWeights[2] + sc3 * cascadeWeights[3], 1);
+			
+			float4 shadowMapCoordinate = float4(sc0 * cascadeWeights[0] + sc1 * cascadeWeights[1] + sc2 * cascadeWeights[2] + sc3 * cascadeWeights[3], 1);
+#if defined(UNITY_REVERSED_Z)
+			float  noCascadeWeights = 1 - dot(cascadeWeights, float4(1, 1, 1, 1));
+			shadowMapCoordinate.z += noCascadeWeights;
+#endif
+			return shadowMapCoordinate;
 		}
-
-		//-----------------------------------------------------------------------------------------
-		// UnityDeferredComputeShadow2
-		//-----------------------------------------------------------------------------------------
-		half UnityDeferredComputeShadow2(float3 vec, float fadeDist, float2 uv)
-		{
-#if defined(SHADOWS_DEPTH) || defined(SHADOWS_SCREEN) || defined(SHADOWS_CUBE)
-			float fade = fadeDist * _LightShadowData.z + _LightShadowData.w;
-			fade = saturate(fade);
-#endif
-
-#if defined(SPOT)
-#if defined(SHADOWS_DEPTH)
-			float4 shadowCoord = mul(_MyWorld2Shadow, float4(vec, 1));
-				return saturate(UnitySampleShadowmap(shadowCoord) + fade);
-#endif //SHADOWS_DEPTH
-#endif
-
-#if defined (DIRECTIONAL) || defined (DIRECTIONAL_COOKIE)
-#if defined(SHADOWS_SCREEN)
-			return saturate(tex2D(_ShadowMapTexture, uv).r + fade);
-#endif
-#endif //DIRECTIONAL || DIRECTIONAL_COOKIE
-
-#if defined (POINT) || defined (POINT_COOKIE)
-#if defined(SHADOWS_CUBE)
-			return UnitySampleShadowmap(vec);
-#endif //SHADOWS_CUBE
-#endif
-
-			return 1.0;
-		}
-
+		
 		UNITY_DECLARE_SHADOWMAP(_CascadeShadowMapTexture);
 		
 		//-----------------------------------------------------------------------------------------
@@ -192,7 +166,10 @@ Shader "Sandbox/VolumetricLight"
 			float att = dot(tolight, tolight) * _LightPos.w;
 			atten *= tex2D(_LightTextureB0, att.rr).UNITY_ATTEN_CHANNEL;
 
-			atten *= UnityDeferredComputeShadow2(wpos, 0, float2(0, 0));
+#if defined(SHADOWS_DEPTH)
+			float4 shadowCoord = mul(_MyWorld2Shadow, float4(wpos, 1));
+			atten *= saturate(UnitySampleShadowmap(shadowCoord));
+#endif
 #elif defined (POINT) || defined (POINT_COOKIE)
 			float3 tolight = wpos - _LightPos.xyz;
 			half3 lightDir = -normalize(tolight);
@@ -378,7 +355,6 @@ Shader "Sandbox/VolumetricLight"
 			#pragma shader_feature HEIGHT_FOG
 			#pragma shader_feature NOISE
 			#pragma shader_feature SHADOWS_CUBE
-			#pragma shader_feature SHADOWS_NATIVE
 			#pragma shader_feature POINT_COOKIE
 			#pragma shader_feature POINT
 
@@ -429,7 +405,6 @@ Shader "Sandbox/VolumetricLight"
 #pragma shader_feature HEIGHT_FOG
 #pragma shader_feature NOISE
 #pragma shader_feature SHADOWS_DEPTH
-#pragma shader_feature SHADOWS_NATIVE
 #pragma shader_feature SPOT
 
 #ifdef SHADOWS_DEPTH
@@ -537,7 +512,6 @@ Shader "Sandbox/VolumetricLight"
 
 			#pragma shader_feature HEIGHT_FOG
 			#pragma shader_feature SHADOWS_DEPTH
-			#pragma shader_feature SHADOWS_NATIVE
 			#pragma shader_feature NOISE
 			#pragma shader_feature SPOT
 
@@ -605,7 +579,6 @@ Shader "Sandbox/VolumetricLight"
 			#pragma shader_feature HEIGHT_FOG
 			#pragma shader_feature NOISE
 			#pragma shader_feature SHADOWS_DEPTH
-			#pragma shader_feature SHADOWS_NATIVE
 			#pragma shader_feature DIRECTIONAL_COOKIE
 			#pragma shader_feature DIRECTIONAL
 

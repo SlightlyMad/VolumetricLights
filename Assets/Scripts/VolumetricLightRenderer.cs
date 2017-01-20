@@ -62,11 +62,11 @@ public class VolumetricLightRenderer : MonoBehaviour
 
     private RenderTexture _halfDepthBuffer;
     private RenderTexture _quarterDepthBuffer;
-    private VolumtericResolution _currentResolution = VolumtericResolution.Full;
+    private VolumtericResolution _currentResolution = VolumtericResolution.Half;
     private Texture2D _ditheringTexture;
     private Texture3D _noiseTexture;
 
-    public VolumtericResolution Resolution = VolumtericResolution.Full;
+    public VolumtericResolution Resolution = VolumtericResolution.Half;
     public Texture DefaultSpotCookie;
 
     public CommandBuffer GlobalCommandBuffer { get { return _preLightPass; } }

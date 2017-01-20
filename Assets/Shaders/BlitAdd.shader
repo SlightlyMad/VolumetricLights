@@ -46,6 +46,7 @@ Shader "Hidden/BlitAdd"
 			sampler2D _MainTex;
 			sampler2D _Source;
 			uniform float4 _MainTex_ST;
+			float4 _Source_TexelSize;
 
 			struct appdata_t 
 			{
@@ -64,12 +65,18 @@ Shader "Hidden/BlitAdd"
 				v2f o;
 				o.vertex = mul(UNITY_MATRIX_MVP, v.vertex);
 				o.texcoord = TRANSFORM_TEX(v.texcoord.xy, _MainTex);
+
 				return o;
 			}
 
 			fixed4 frag(v2f i) : SV_Target
 			{
 				float4 main = tex2D(_MainTex, i.texcoord);
+
+#if UNITY_UV_STARTS_AT_TOP
+				if (_Source_TexelSize.y < 0)
+					i.texcoord.y = 1 - i.texcoord.y;
+#endif
 				float4 source = tex2D(_Source, i.texcoord);
 
 				source *= main.w;

@@ -43,9 +43,9 @@ public class VolumetricLight : MonoBehaviour
     private CommandBuffer _cascadeShadowCommandBuffer;
 
     [Range(1, 64)]
-    public int SampleCount = 12;
+    public int SampleCount = 8;
     [Range(0.0f, 1.0f)]
-    public float ScatteringCoef = 0.1f;
+    public float ScatteringCoef = 0.5f;
     [Range(0.0f, 0.1f)]
     public float ExtinctionCoef = 0.01f;
     [Range(0.0f, 1.0f)]
@@ -141,6 +141,12 @@ public class VolumetricLight : MonoBehaviour
     /// <param name="viewProj"></param>
     private void VolumetricLightRenderer_PreRenderEvent(VolumetricLightRenderer renderer, Matrix4x4 viewProj)
     {
+        // light was destroyed without deregistring, deregister now
+        if (_light == null || _light.gameObject == null)
+        {
+            VolumetricLightRenderer.PreRenderEvent -= VolumetricLightRenderer_PreRenderEvent;
+        }
+
         if (!_light.gameObject.activeInHierarchy || _light.enabled == false)
             return;
 
