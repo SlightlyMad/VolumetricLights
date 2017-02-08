@@ -59,6 +59,8 @@ Volumetric fog can be rendered in smaller resolution as an optimization. Set ren
 * Unity 5 (tested on 5.3.4, 5.4 and 5.5)
 * DirectX 10/11 or OpenGL 4.1 and above
 * Tested on Windows and Mac but it should work on other platforms as well
+* VR isn't supported
+* Mobile devices aren't supported
 
 ### Known Limitations
 * ~~Currently requires HDR camera and deferred renderer~~
