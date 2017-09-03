@@ -1,14 +1,9 @@
 # Volumetric Lights for Unity 5
 [![IMAGE ALT TEXT HERE](https://bqu2ya-dm2305.files.1drv.com/y3mSxIn4D7Zx9td_2NWn3yZu6024l3GC9-8fKVrnivLnjVDxyiZ9SgNVjycxd1AX_bjaVZnWVqwu0TonTrdLqbi1RrIX_8eiTQx_7u38GzTOYj9zHKnEZ2Fz97TykfO2OAdQv_nndYI0_lwAAWwFwO08pnGCRgzjOYEBCAStMnf9UQ?width=1167&height=653&cropmode=none)](https://www.youtube.com/watch?v=JPxLCYXB-8A) [![IMAGE ALT TEXT HERE](https://agu0ya-dm2305.files.1drv.com/y3mnqQ4pzhZdF4k3Z7Fv_QApkSe2XWNtBUwVwrinyrbIuJt6Stv3XubFLqom7tLWehG9MCapT3z6njzfQeZbobiilFRe_2qJcE8f0gpENxg3_ccxGOMjV4Zi3GcwKhaf1iVdpq1d9p4I9QhflIlj2TdlEWWNcaklBpPJ8A5IZmCtcs?width=1167&height=650&cropmode=none)](https://www.youtube.com/watch?v=ElaPJyzR504)
 
-Open source (FreeBSD) extension for built-in Unity lights. It uses ray marching in light's volume to compute volumetric fog. This technique is similar to the one used in Killzone ([GPU Pro 5](http://www.amazon.com/GPU-Pro-Advanced-Rendering-Techniques/dp/1482208636): Volumetric Light Effects in Killzone Shadow Fall by Nathan Vos)
+Open source (BSD) extension for built-in Unity lights. It uses ray marching in light's volume to compute volumetric fog. This technique is similar to the one used in Killzone ([GPU Pro 5](http://www.amazon.com/GPU-Pro-Advanced-Rendering-Techniques/dp/1482208636): Volumetric Light Effects in Killzone Shadow Fall by Nathan Vos)
 
 Corresponding thread in Unity Forum can be found [here](http://forum.unity3d.com/threads/true-volumetric-lights-open-source-soon.390818/).
-
-### Future plans
-* Temporal filter
-* Full atmospheric scattering
-* Volumetric clouds
 
 ### Demo Project
 I developed this technology for my hobby project. It was never meant for real use and it is therefore little rough around the edges.
@@ -22,7 +17,7 @@ Or you can try it for yourself: [Binary download](https://onedrive.live.com/redi
 * Volumetric noise implemented as animated 3D texture.
 
 ### Usage
-* Add VolumetricLightRenderer script to your camera and set default cookie texture for spot light. Camera has to use HDR+Deferred combo.
+* Add VolumetricLightRenderer script to your camera and set default cookie texture for spot light.
 * Add VolumetricLight script to every light that you want to have volumetric fog.
 
 Volumetric lights will respect standard light's parameters like color, intensity, range, shadows and cookie. There are also additional parameters specific for volumetric lights. For example:
@@ -61,9 +56,11 @@ Volumetric fog can be rendered in smaller resolution as an optimization. Set ren
 * Quarter resolution - experimental. Worse quality, best performance.
 
 ### Requirements
-* Unity 5 (tested on 5.3.4)
+* Unity 5 (tested on 5.3.4, 5.4 and 5.5)
 * DirectX 10/11 or OpenGL 4.1 and above
 * Tested on Windows and Mac but it should work on other platforms as well
+* VR isn't supported
+* Mobile devices aren't supported
 
 ### Known Limitations
 * ~~Currently requires HDR camera and deferred renderer~~
