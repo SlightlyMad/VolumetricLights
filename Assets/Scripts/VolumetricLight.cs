@@ -196,12 +196,7 @@ public class VolumetricLight : MonoBehaviour
             SetupDirectionalLight(renderer, viewProj);
         }
     }
-
-    void Update()
-    {
-        _commandBuffer.Clear();
-    }
-
+    
     /// <summary>
     /// 
     /// </summary>
@@ -209,6 +204,8 @@ public class VolumetricLight : MonoBehaviour
     /// <param name="viewProj"></param>
     private void SetupPointLight(VolumetricLightRenderer renderer, Matrix4x4 viewProj)
     {
+        _commandBuffer.Clear();
+
         int pass = 0;
         if (!IsCameraInPointLightBounds())
             pass = 2;
@@ -278,7 +275,9 @@ public class VolumetricLight : MonoBehaviour
     /// <param name="renderer"></param>
     /// <param name="viewProj"></param>
     private void SetupSpotLight(VolumetricLightRenderer renderer, Matrix4x4 viewProj)
-    {        
+    {
+        _commandBuffer.Clear();
+
         int pass = 1;
         if (!IsCameraInSpotLightBounds())
         {
@@ -383,6 +382,8 @@ public class VolumetricLight : MonoBehaviour
     /// <param name="viewProj"></param>
     private void SetupDirectionalLight(VolumetricLightRenderer renderer, Matrix4x4 viewProj)
     {
+        _commandBuffer.Clear();
+
         int pass = 4;
 
         _material.SetPass(pass);
