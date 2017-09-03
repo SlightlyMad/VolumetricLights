@@ -1,5 +1,5 @@
 # Volumetric Lights for Unity 5
-[![IMAGE ALT TEXT HERE](https://bqu2ya-dm2305.files.1drv.com/y3mSxIn4D7Zx9td_2NWn3yZu6024l3GC9-8fKVrnivLnjVDxyiZ9SgNVjycxd1AX_bjaVZnWVqwu0TonTrdLqbi1RrIX_8eiTQx_7u38GzTOYj9zHKnEZ2Fz97TykfO2OAdQv_nndYI0_lwAAWwFwO08pnGCRgzjOYEBCAStMnf9UQ?width=1167&height=653&cropmode=none)](https://www.youtube.com/watch?v=JPxLCYXB-8A) [![IMAGE ALT TEXT HERE](https://agu0ya-dm2305.files.1drv.com/y3mnqQ4pzhZdF4k3Z7Fv_QApkSe2XWNtBUwVwrinyrbIuJt6Stv3XubFLqom7tLWehG9MCapT3z6njzfQeZbobiilFRe_2qJcE8f0gpENxg3_ccxGOMjV4Zi3GcwKhaf1iVdpq1d9p4I9QhflIlj2TdlEWWNcaklBpPJ8A5IZmCtcs?width=1167&height=650&cropmode=none)](https://www.youtube.com/watch?v=ElaPJyzR504)
+[![IMAGE ALT TEXT HERE](https://bqu2ya-dm2305.files.1drv.com/y3mSxIn4D7Zx9td_2NWn3yZu6024l3GC9-8fKVrnivLnjVDxyiZ9SgNVjycxd1AX_bjaVZnWVqwu0TonTrdLqbi1RrIX_8eiTQx_7u38GzTOYj9zHKnEZ2Fz97TykfO2OAdQv_nndYI0_lwAAWwFwO08pnGCRgzjOYEBCAStMnf9UQ?width=1167&height=653&cropmode=none)](https://www.youtube.com/watch?v=JPxLCYXB-8A) [![IMAGE ALT TEXT HERE](https://agu0ya-dm2305.files.1drv.com/y4mnqQ4pzhZdF4k3Z7Fv_QApimv9POLR1ShQPoNg8wtUf7TzqFdWLY6Y8bxtyJhGQNRe8NLvy1GGoZsorNssr2h6fTsAfyi-F2LOIA4wzNY_7cS-1iEjVHyOCyOCTA0_8na3cmWvQ34gHBfyXOxxE6AZIjaVwCemZP7kSwaUNoNDyCPsCkx8vsdmxuwmuVcrH1rYblmFCaVH5za_EsrqM-qJA?width=1167&height=650&cropmode=none)](https://www.youtube.com/watch?v=ElaPJyzR504)
 
 Open source (BSD) extension for built-in Unity lights. It uses ray marching in light's volume to compute volumetric fog. This technique is similar to the one used in Killzone ([GPU Pro 5](http://www.amazon.com/GPU-Pro-Advanced-Rendering-Techniques/dp/1482208636): Volumetric Light Effects in Killzone Shadow Fall by Nathan Vos)
 
@@ -39,15 +39,15 @@ Several sample scenes are part of this project.
 
 #### Example scene with different parameters
 * Low/High Scattering and Extinction parameters
-![alt tag](https://agu1ya-dm2305.files.1drv.com/y3mgo5ud5huq-SUjw4z8gGjB9JBoWBhIerh46Oh18e6GVoy7lR6vffSZeK50e7FnTINV04B20jmSGiyRrodTTVgYGkZ00goIWjvKMaxMQS9eygkKSKansmWCHR0lzJ-v0Rag8-_h4-iJZjD304lRqSmgHT7KAZpNJIeRnihNJ4Y03k?width=2338&height=650&cropmode=none)
+![](https://agu1ya-dm2306.files.1drv.com/y4mgo5ud5huq-SUjw4z8gGjB_pnFcs5Le8t64E29kCLJ7WVPpmPLo79oi0BI2YPe6mCMiNOIAZnVNorlBrk6hULgNHbpWGmvLgFOnWEFbj1sRnDP6ml9WXuAFYmH9HZ68DKvTZpjU5VPEDNVRtl2UtsQMDJkR-T0N3V2CirkmHtGKATppk2FI5ffRgdRyEiKErUnEpZjhPk610xZS7JxaeLOA?width=2338&height=650&cropmode=none)
 * Low/High Mie G parameter
-![alt tag](https://agupya-dm2305.files.1drv.com/y3mobk9viWO3q53gQlSGj7Libj929UoUR4WlQBu5aY5K57aBg3dly30hnHi7sLZwO1_OTPqvXb9Ifa3L46HFuuNZ_AEMijAK3hFJagQ-uxUHUCI5E5fSVFIpYGgeF_yS7AQwi-sloHyxFwdg4vD46aujZDYxlRCFG006cU-f_y4BnE?width=2338&height=650&cropmode=none)
+![](https://agupya-dm2pap001.files.1drv.com/y4mobk9viWO3q53gQlSGj7LiWmEt72ezfHqnMFYTziSGr2UBFEoIXgbTNZEfbrtG-Arznyc-6V19FunkGzO9K87fXVCI9EnYRAiFyHmmpBGrhPrl_pmpE-y_b01FJJdXLZ6GfGkzjd8Zr6CB8Ity2QYHWizx2saq8ZHPwG8fdajjUUQPSLO9nsY7irPHiGzXt846gJml1rK4QA5aGpMC13_3A?width=2338&height=650&cropmode=none)
 * High/Low Shadow Strength. This technique uses single scattering model. That makes areas in shadow unnaturally dark. Use Shadow Strength to "simulate" multiple scattering.
-![alt tag](https://aguqya-dm2305.files.1drv.com/y3mQZxpA5UbrBUPIMo44IfWChUXznaOaxBLbyqcCL-SN2y_o7mz8CJudvjWR_PdfwqPJ2i7VXIqO917oUBGhYkj-KS1pFXPHJk-GYQ_HPLmWKtDvwcqKDKPYwJy3JzQQE9IP38OIA6yQViA4olICpZkxmPpqhmYZbHemwdc5vEyz0s?width=2338&height=650&cropmode=none)
+![](https://aguqya-dm2305.files.1drv.com/y4mQZxpA5UbrBUPIMo44IfWCpDPdJmn4kEdFab0EuyQVNXdfYIWG4v-nnmU4M0nSCcUpE8sLgq-DV5I21QMk3oDt-rS8o8SlahBJ6TKxVk-ejvmPZUojx9BDMrjzSjfYvy6eQxtMF9ksV2bYZqQOCNPYJmvp5TFzR_fP7aJv7XJhJ2tP3ioLLCenF5sBiuR1p5anj915BAl6vAi0n4iX0v53w?width=2338&height=650&cropmode=none)
 * Height fog with different scale
-![alt tag](https://bqu4ya-dm2305.files.1drv.com/y3mmmE_KTmAE9MRLeoYFM3wkPDDjcUJyDA89Z1yorEND1GWkp4pW3Xo6iEdSQa0r8Ciz1hXT6XFufQQGO1id3vfybIgX2vw9hhJpwLGm4SMQ33CKdtnVkTTct_tYN0tW_g5cfXyNxFBEPshRUuP_-idZf5Hg4qaU5zrc8m6kIeDbZg?width=2338&height=650&cropmode=none)
+![](https://bqu4ya.dm2302.livefilestore.com/y4mmmE_KTmAE9MRLeoYFM3wkJZk7hVmA2rh6P4qPWDYv3p3w6kMwzSFnKkSjUir0LAf9YIRDsR_lUsd85dud97TtlHB03vwAtAJSViYPkzYo_IcqBcH87NENZM6lawDtOJaxorQhC0XMade8rVcGHKTPftLIV4E1OYHSKfqNCiNoNTJ2ezc3qwRtEFq4580Z-VsHIoo1eZZIgqyrN-cQr96hw?width=2338&height=650&cropmode=none)
 * High/Low Skybox Extinction parameter
-![alt tag](https://bqu3ya-dm2305.files.1drv.com/y3mxWdkqeJLzQKmg9OI8Xd2P0cZ1YAs6g5n0CihQLpcyfigapIjFUTYvVo4-vikHtMfMwyOoQMsprqydKNaDgEHwckqNx6ATTqcuNEanUQ9256-D4l3iSConnDO12nk9y_lIm_Ztu7Fuib7G7mW1rgF4Rc5tJOiwLIN7l08_4fTZAc?width=2338&height=650&cropmode=none)
+![](https://bqu3ya.dm2302.livefilestore.com/y4mxWdkqeJLzQKmg9OI8Xd2PwtzTYi0M5s7TlIcVkOeLHWeEXz_OXSKSAEduhc4MQnC6rajZ1bWSxbKvJLRYj5GpHPAZu1fPijrKAfCg3nat0laIP06t5A6yIljMAd8yi7U0a_0ri0ipRhkW0Ep8d3gLqSFDppSvxrVQ4UgPJhSHJPGItDPbeM7wvHBxxrhcRWTlv2VQqqSG6_6hCxcLmh-fw?width=2338&height=650&cropmode=none)
 
 ### Rendering resolution
 Volumetric fog can be rendered in smaller resolution as an optimization. Set rendering resolution in VolumetricLightRenderer script.
