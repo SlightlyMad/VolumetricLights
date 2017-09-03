@@ -404,7 +404,7 @@ public class VolumetricLightRenderer : MonoBehaviour
         uint pitch = BitConverter.ToUInt32(data.bytes, 20);
         uint depth = BitConverter.ToUInt32(data.bytes, 24);
         uint formatFlags = BitConverter.ToUInt32(data.bytes, 20 * 4);
-        uint fourCC = BitConverter.ToUInt32(data.bytes, 21 * 4);
+        //uint fourCC = BitConverter.ToUInt32(data.bytes, 21 * 4);
         uint bitdepth = BitConverter.ToUInt32(data.bytes, 22 * 4);
         if (bitdepth == 0)
             bitdepth = pitch / width * 8;
