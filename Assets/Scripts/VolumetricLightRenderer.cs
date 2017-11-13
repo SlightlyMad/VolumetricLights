@@ -269,10 +269,9 @@ public class VolumetricLightRenderer : MonoBehaviour
     /// </summary>
     public void OnPreRender()
     {
-        // use very low value for near clip plane to simplify cone/frustum intersection 
-        Matrix4x4 proj = Matrix4x4.Perspective(_camera.fieldOfView, _camera.aspect, 0.01f, _camera.farClipPlane);
-        proj = GL.GetGPUProjectionMatrix(proj, true);
 
+        // use very low value for near clip plane to simplify cone/frustum intersection 
+        Matrix4x4 proj = GL.GetGPUProjectionMatrix(Camera.current.projectionMatrix, true);
         _viewProj = proj * _camera.worldToCameraMatrix;
 
         _preLightPass.Clear();
