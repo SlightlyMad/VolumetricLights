@@ -358,7 +358,9 @@ public class VolumetricLight : MonoBehaviour
 
             _material.EnableKeyword("SHADOWS_DEPTH");
             _commandBuffer.SetGlobalTexture("_ShadowMapTexture", BuiltinRenderTextureType.CurrentActive);
-            renderer.GlobalCommandBuffer.DrawMesh(mesh, world, _material, 0, pass);
+            _commandBuffer.SetRenderTarget(renderer.GetVolumeLightBuffer());
+
+            _commandBuffer.DrawMesh(mesh, world, _material, 0, pass);
 
             if (CustomRenderEvent != null)
                 CustomRenderEvent(renderer, this, _commandBuffer, viewProj);       
