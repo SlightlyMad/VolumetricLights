@@ -270,8 +270,18 @@ public class VolumetricLightRenderer : MonoBehaviour
     public void OnPreRender()
     {
 
-        // use very low value for near clip plane to simplify cone/frustum intersection 
-        Matrix4x4 proj = GL.GetGPUProjectionMatrix(Camera.current.projectionMatrix, true);
+        // use very low value for near clip plane to simplify cone/frustum intersection
+        Matrix4x4 proj = Matrix4x4.Perspective(_camera.fieldOfView, _camera.aspect, 0.01f, _camera.farClipPlane);
+
+#if UNITY_2017_2_OR_NEWER
+        if (UnityEngine.XR.XRSettings.enabled)
+        {
+            // when using VR override the used projection matrix
+            proj = Camera.current.projectionMatrix;
+        }
+#endif
+
+        proj = GL.GetGPUProjectionMatrix(proj, true);
         _viewProj = proj * _camera.worldToCameraMatrix;
 
         _preLightPass.Clear();
