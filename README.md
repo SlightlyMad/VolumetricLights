@@ -1,4 +1,4 @@
-# Volumetric Lights for Unity 5
+# Volumetric Lights for Unity 2017.3
 [![IMAGE ALT TEXT HERE](https://bqu2ya.dm1.livefilestore.com/y4mSxIn4D7Zx9td_2NWn3yZu8UxWeqJKN4qdciZ0fCqO9ox290xR837Moux6HnPpWPkF8mi7oY26ZNF7n0eJfbPMNoBTtrMraKnghJ4XF13tCK2bBPybZVudlL1UU_gBkFyY7lt30UYbVJ-EZVaV2Z8C1DglijmBYelQfJyplssFe7oSklBvneGtDlhwDv1dougv2ZpHmipfzYRuR6fLeawlQ?width=1167&height=653&cropmode=none)](https://www.youtube.com/watch?v=JPxLCYXB-8A) [![IMAGE ALT TEXT HERE](https://agu0ya-dm2305.files.1drv.com/y4mnqQ4pzhZdF4k3Z7Fv_QApimv9POLR1ShQPoNg8wtUf7TzqFdWLY6Y8bxtyJhGQNRe8NLvy1GGoZsorNssr2h6fTsAfyi-F2LOIA4wzNY_7cS-1iEjVHyOCyOCTA0_8na3cmWvQ34gHBfyXOxxE6AZIjaVwCemZP7kSwaUNoNDyCPsCkx8vsdmxuwmuVcrH1rYblmFCaVH5za_EsrqM-qJA?width=1167&height=650&cropmode=none)](https://www.youtube.com/watch?v=ElaPJyzR504)
 
 Open source (BSD) extension for built-in Unity lights. It uses ray marching in light's volume to compute volumetric fog. This technique is similar to the one used in Killzone ([GPU Pro 5](http://www.amazon.com/GPU-Pro-Advanced-Rendering-Techniques/dp/1482208636): Volumetric Light Effects in Killzone Shadow Fall by Nathan Vos)
@@ -56,15 +56,13 @@ Volumetric fog can be rendered in smaller resolution as an optimization. Set ren
 * Quarter resolution - experimental. Worse quality, best performance.
 
 ### Requirements
-* Unity 5 (tested on 5.3.4, 5.4 and 5.5)
+* Unity 2017.3
 * DirectX 10/11 or OpenGL 4.1 and above
 * Tested on Windows and Mac but it should work on other platforms as well
 * VR isn't supported
 * Mobile devices aren't supported
 
 ### Known Limitations
-* ~~Currently requires HDR camera and deferred renderer~~
-* ~~Currently requires DirectX 11~~
 * Doesn't handle transparent geometry correctly (cutout is ok)
 * 3d noise texture is hard coded. VolumetricLightRenderer has custom dds file loader that loads one specific 3d texture (Unity doesn't support 3d textures loaded from file). File "NoiseVolume.bytes" has to be in Resources folder.
 * Shadow fading is not implemented
@@ -89,6 +87,4 @@ Volumetric fog can be rendered in smaller resolution as an optimization. Set ren
 * I didn't try to optimize the shaders, there is likely room for improvement.
  
 ### Donations
-I've been asked about donation button several times now. I don't feel very comfortable about it. I don't need the money. I have a well paid job. It could also give the impression that I would use the money for further development. But that is certainly not the case. 
-
-But if you really like it and you want to brighten my day then you can always buy me a little gift. Send me [Amazon](https://www.amazon.com/Amazon-Amazon-com-eGift-Cards/dp/BT00DC6QU4) or [Steam](https://www.paypal-gifts.com/uk/brands/steam-digital-wallet-code.html) gift card and I'll buy myself something shiny. You can find my email in my profile. 
+Go support SlightlyMad - This is his original work.
