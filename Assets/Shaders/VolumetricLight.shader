@@ -1,3 +1,7 @@
+// Upgrade NOTE: replaced '_Object2World' with 'unity_ObjectToWorld'
+// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
+// Upgrade NOTE: replaced 'unity_World2Shadow' with 'unity_WorldToShadow'
+
 //  Copyright(c) 2016, Michal Skalsky
 //  All rights reserved.
 //
@@ -94,7 +98,7 @@ Shader "Sandbox/VolumetricLight"
 			v2f o;
 			o.pos = mul(_WorldViewProj, v.vertex);
 			o.uv = ComputeScreenPos(o.pos);
-			o.wpos = mul(_Object2World, v.vertex);
+			o.wpos = mul(unity_ObjectToWorld, v.vertex);
 			return o;
 		}
 
@@ -119,10 +123,10 @@ Shader "Sandbox/VolumetricLight"
 		//-----------------------------------------------------------------------------------------
 		inline float4 GetCascadeShadowCoord(float4 wpos, fixed4 cascadeWeights)
 		{
-			float3 sc0 = mul(unity_World2Shadow[0], wpos).xyz;
-			float3 sc1 = mul(unity_World2Shadow[1], wpos).xyz;
-			float3 sc2 = mul(unity_World2Shadow[2], wpos).xyz;
-			float3 sc3 = mul(unity_World2Shadow[3], wpos).xyz;
+			float3 sc0 = mul(unity_WorldToShadow[0], wpos).xyz;
+			float3 sc1 = mul(unity_WorldToShadow[1], wpos).xyz;
+			float3 sc2 = mul(unity_WorldToShadow[2], wpos).xyz;
+			float3 sc3 = mul(unity_WorldToShadow[3], wpos).xyz;
 			
 			float4 shadowMapCoordinate = float4(sc0 * cascadeWeights[0] + sc1 * cascadeWeights[1] + sc2 * cascadeWeights[2] + sc3 * cascadeWeights[3], 1);
 #if defined(UNITY_REVERSED_Z)
@@ -604,7 +608,7 @@ Shader "Sandbox/VolumetricLight"
 			{
 				PSInput o;
 
-				o.pos = mul(UNITY_MATRIX_MVP, i.vertex);
+				o.pos = UnityObjectToClipPos(i.vertex);
 				o.uv = i.uv;
 
 				// SV_VertexId doesn't work on OpenGL for some reason -> reconstruct id from uv
