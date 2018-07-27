@@ -145,6 +145,7 @@ public class VolumetricLight : MonoBehaviour
         if (_light == null || _light.gameObject == null)
         {
             VolumetricLightRenderer.PreRenderEvent -= VolumetricLightRenderer_PreRenderEvent;
+            return;
         }
 
         if (!_light.gameObject.activeInHierarchy || _light.enabled == false)
