@@ -151,7 +151,7 @@ public class VolumetricLightRenderer : MonoBehaviour
             throw new Exception("Critical Error: \"Hidden/BlitAdd\" shader is missing. Make sure it is included in \"Always Included Shaders\" in ProjectSettings/Graphics.");
         _blitAddMaterial = new Material(shader);
 
-        shader = Shader.Find("Hidden/BilateralBlur");
+        shader = Shader.Find("Hidden/MyBilateralBlur");
         if (shader == null)
             throw new Exception("Critical Error: \"Hidden/BilateralBlur\" shader is missing. Make sure it is included in \"Always Included Shaders\" in ProjectSettings/Graphics.");
         _bilateralBlurMaterial = new Material(shader);
